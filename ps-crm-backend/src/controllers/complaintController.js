@@ -2,8 +2,9 @@ const Complaint = require('../models/Complaint');
 const { setSLADeadline } = require('../config/slaService');
 const { sendComplaintConfirmation, sendStatusUpdate } = require('../config/emailService');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Groq = require('groq-sdk');
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const parseImages = (rawImages) => {
   if (!rawImages) return [];
@@ -17,49 +18,99 @@ const parseImages = (rawImages) => {
   }));
 };
 
-/**
- * Urgency rank — used to escalate the shared complaint when a new
- * filer reports higher urgency than the current one.
- */
-const URGENCY_RANK = { Low: 1, Medium: 2, High: 3 };
+// ─── Classification constants ─────────────────────────────────────────────────
 
-/**
- * Similarity threshold — cosine similarity must exceed this value
- * for two descriptions to be treated as the same issue.
- * 0.82 means ~82% semantic overlap. Tune up (stricter) or down (looser)
- * based on real-world testing.
- */
+const VALID_DEPARTMENTS = [
+  'Sanitation & Solid Waste Management',
+  'Roads & Infrastructure',
+  'Water Supply & Drainage',
+  'Street Lighting',
+  'Health Services',
+  'Education (MCD Schools)',
+  'Building & Planning',
+  'Parks & Horticulture',
+  'Property Tax',
+  'Birth & Death Registration',
+  'Food Safety & Slaughterhouse',
+  'Fire Services',
+  'Veterinary Services',
+  'Encroachment Removal',
+  'Advertisement & Signage',
+  'Other',
+];
+
+const VALID_CATEGORIES = [
+  'Sanitation', 'Roads', 'Water', 'Electricity', 'Health',
+  'Education', 'Infrastructure', 'Environment', 'Finance',
+  'Administration', 'Food Safety', 'Safety', 'Animal Welfare',
+  'Encroachment', 'Signage', 'Other',
+];
+
+const VALID_URGENCIES = ['High', 'Medium', 'Low'];
+
+const CLASSIFICATION_PROMPT = (title, description) => `You are an expert AI classifier for a Delhi Municipal Corporation (MCD) public grievance portal in India.
+
+A citizen has submitted this complaint:
+Title: "${title}"
+Description: "${description}"
+
+Your job is to classify this complaint accurately into the correct MCD department.
+
+DEPARTMENTS AND THEIR EXACT ISSUES:
+1.  "Sanitation & Solid Waste Management"  → garbage not collected, overflowing dustbin, waste dumping, sweeping not done, dirty road, foul smell, open garbage, littering
+2.  "Roads & Infrastructure"               → pothole, road damage, broken road, road cave-in, speed breaker needed, road construction, divider broken (NOT footpath blocking by vendors)
+3.  "Water Supply & Drainage"              → no water supply, water pipeline leak, drain overflow, sewage problem, waterlogging, borewell issue, tap water issue, water cut
+4.  "Street Lighting"                      → streetlight not working, dark road at night, broken light pole, street lamp broken, no lighting on road
+5.  "Health Services"                      → MCD dispensary issue, mosquito breeding, dengue, malaria, vector control, public health camp, vaccination, disease outbreak
+6.  "Education (MCD Schools)"              → MCD school complaint, teacher absent, mid-day meal problem, school building issue, student admission MCD school
+7.  "Building & Planning"                  → illegal construction, unauthorized building, demolition notice, building permit complaint, construction without permission
+8.  "Parks & Horticulture"                 → park not maintained, broken bench in park, overgrown grass, fallen tree, garden dirty, horticulture complaint
+9.  "Property Tax"                         → wrong property tax bill, tax assessment error, property tax rebate, tax billing complaint, duplicate tax notice
+10. "Birth & Death Registration"           → birth certificate not issued, death certificate delay, certificate correction, registration problem at MCD office
+11. "Food Safety & Slaughterhouse"         → adulterated food, expired food sold, unhygienic food shop, meat shop complaint, food poisoning complaint, slaughterhouse issue
+12. "Fire Services"                        → fire incident, fire hazard, fire safety violation, fire NOC complaint, fire extinguisher missing, burning
+13. "Veterinary Services"                  → stray dog attack, dog bite, stray animals, animal cruelty, animal vaccination, cattle on road
+14. "Encroachment Removal"                 → illegal encroachment on footpath, vendor blocking footpath, illegal stall on road, hawker occupying public space, roadside encroachment
+15. "Advertisement & Signage"             → illegal hoarding, unauthorized banner, illegal signage, advertisement violation, hoarding blocking view
+16. "Other"                                → complaints that do not match any above department
+
+CATEGORY must be one of: Sanitation, Roads, Water, Electricity, Health, Education, Infrastructure, Environment, Finance, Administration, Food Safety, Safety, Animal Welfare, Encroachment, Signage, Other
+
+URGENCY rules:
+- High   → immediate danger to life, health emergency, accident risk, crime, fire, no water/electricity for many days
+- Medium → ongoing inconvenience, affects daily life, not life-threatening
+- Low    → minor issue, cosmetic problem, information request, suggestion
+
+IMPORTANT RULES:
+- "footpath blocked by vendor/hawker" = Encroachment Removal (NOT Roads)
+- "streetlight not working" = Street Lighting (NOT Electricity)
+- "stray dog" = Veterinary Services (NOT Safety)
+- "illegal construction" = Building & Planning (NOT Encroachment)
+- "park dirty" = Parks & Horticulture (NOT Sanitation)
+- Always match the department EXACTLY as written above
+
+Return ONLY a raw JSON object. No markdown. No explanation. No extra text:
+{"category":"Encroachment","urgency":"Medium","department":"Encroachment Removal","reason":"Vendor illegally occupying public footpath"}`;
+
+// ─── Dedup constants ──────────────────────────────────────────────────────────
+
+const URGENCY_RANK       = { Low: 1, Medium: 2, High: 3 };
 const SIMILARITY_THRESHOLD = 0.82;
 
 // ─── Semantic helpers ─────────────────────────────────────────────────────────
 
-/**
- * Call Gemini text-embedding-004 and return a 768-dim float array.
- * Falls back to null if the API call fails so we degrade gracefully.
- *
- * @param {string} text
- * @returns {Promise<number[]|null>}
- */
 const getEmbedding = async (text) => {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
     const result = await model.embedContent(text);
-    return result.embedding.values;          // array of 768 numbers
+    return result.embedding.values;
   } catch (err) {
     console.error('Embedding error (non-fatal):', err.message);
     return null;
   }
 };
 
-/**
- * Cosine similarity between two equal-length vectors.
- * Returns a value between -1 and 1; higher = more similar.
- *
- * @param {number[]} a
- * @param {number[]} b
- * @returns {number}
- */
 const cosineSimilarity = (a, b) => {
   let dot = 0, normA = 0, normB = 0;
   for (let i = 0; i < a.length; i++) {
@@ -71,7 +122,7 @@ const cosineSimilarity = (a, b) => {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 };
 
-// ─── POST /api/complaints ────────────────────────────────────────────────────
+// ─── POST /api/complaints ─────────────────────────────────────────────────────
 
 const submitComplaint = async (req, res) => {
   try {
@@ -79,9 +130,9 @@ const submitComplaint = async (req, res) => {
       title,
       description,
       category,
-      urgency   = 'Low',
-      location  = {},     // { address, ward, locality }
-      citizen   = {},     // { name, email, phone }
+      urgency  = 'Low',
+      location = {},
+      citizen  = {},
       images,
       ...rest
     } = req.body;
@@ -89,38 +140,29 @@ const submitComplaint = async (req, res) => {
     const { ward = '', locality = '', address = '' } = location;
     const deadline = setSLADeadline(urgency);
 
-    // ── 1. Build the exact dedup fingerprint (ward + locality + category) ───
+    // ── 1. Build dedup fingerprint ──────────────────────────────────────────
     const duplicateKey = Complaint.buildDuplicateKey(ward, locality, category);
 
-    // ── 2. Generate embedding for the incoming description ──────────────────
-    //    We embed title + description together for richer context.
+    // ── 2. Generate embedding ───────────────────────────────────────────────
     const incomingText      = `${title} ${description}`.trim();
     const incomingEmbedding = await getEmbedding(incomingText);
 
-    // ── 3. Fetch ALL open complaints with matching location+category ─────────
-    //    (could be more than one if somehow multiple exist — we pick the best)
+    // ── 3. Fetch open candidates ────────────────────────────────────────────
     const candidates = await Complaint
-      .find({
-        duplicateKey,
-        status: { $in: ['Pending', 'In Progress'] },
-      })
-      .select('+descriptionEmbedding');   // embedding is select:false, opt-in here
+      .find({ duplicateKey, status: { $in: ['Pending', 'In Progress'] } })
+      .select('+descriptionEmbedding');
 
-    // ── 4. Semantic matching against candidates ──────────────────────────────
-    let bestMatch    = null;
-    let bestScore    = -1;
+    // ── 4. Semantic matching ────────────────────────────────────────────────
+    let bestMatch = null;
+    let bestScore = -1;
 
     for (const candidate of candidates) {
-      // If either side has no embedding (API failed), fall back to exact match
-      // (treat any candidate in same ward+locality+category as a duplicate)
       if (!incomingEmbedding || !candidate.descriptionEmbedding?.length) {
-        if (!bestMatch) bestMatch = candidate;   // take first as fallback
+        if (!bestMatch) bestMatch = candidate;
         continue;
       }
-
       const score = cosineSimilarity(incomingEmbedding, candidate.descriptionEmbedding);
       console.log(`Semantic similarity vs ${candidate.complaintNumber}: ${score.toFixed(4)}`);
-
       if (score > bestScore) {
         bestScore = score;
         bestMatch = score >= SIMILARITY_THRESHOLD ? candidate : null;
@@ -155,15 +197,15 @@ const submitComplaint = async (req, res) => {
       });
 
       return res.status(200).json({
-        success:      true,
-        isDuplicate:  true,
+        success:         true,
+        isDuplicate:     true,
         similarityScore: bestScore > 0 ? parseFloat(bestScore.toFixed(4)) : null,
         message: `Your complaint has been linked to an existing report: ${merged.complaintNumber}. A single officer will resolve it.`,
         data: merged,
       });
     }
 
-    // ── FRESH COMPLAINT PATH ─────────────────────────────────────────────────
+    // ── FRESH COMPLAINT PATH ──────────────────────────────────────────────
     const complaint = await Complaint.create({
       ...rest,
       title,
@@ -172,18 +214,16 @@ const submitComplaint = async (req, res) => {
       duplicateKey,
       descriptionEmbedding: incomingEmbedding ?? undefined,
       location: { address, ward, locality },
-      filers: [
-        {
-          citizen: {
-            name:  citizen.name  || '',
-            email: citizen.email || '',
-            phone: citizen.phone || '',
-          },
-          description,
-          images:  parseImages(images),
-          filedAt: new Date(),
+      filers: [{
+        citizen: {
+          name:  citizen.name  || '',
+          email: citizen.email || '',
+          phone: citizen.phone || '',
         },
-      ],
+        description,
+        images:  parseImages(images),
+        filedAt: new Date(),
+      }],
       sla: { deadline, escalated: false, escalatedAt: null },
     });
 
@@ -201,7 +241,7 @@ const submitComplaint = async (req, res) => {
   }
 };
 
-// ─── GET /api/complaints — All complaints (admin only) ──────────────────────
+// ─── GET /api/complaints — All complaints (admin only) ───────────────────────
 
 const getAllComplaints = async (req, res) => {
   try {
@@ -212,7 +252,7 @@ const getAllComplaints = async (req, res) => {
   }
 };
 
-// ─── GET /api/complaints/track/:complaintNumber — Public track ───────────────
+// ─── GET /api/complaints/track/:complaintNumber ───────────────────────────────
 
 const getComplaintByNumber = async (req, res) => {
   try {
@@ -244,22 +284,15 @@ const getComplaintByNumber = async (req, res) => {
 
     const complaintData = complaint.toObject();
     complaintData.citizen = matchedFiler?.citizen || complaintData.filers?.[0]?.citizen || null;
-    
-    // Get the actual description from filers - check multiple sources for backwards compatibility
+
     let description = '';
     if (complaintData.filers.length > 1) {
-      // Duplicate: use first filer's description
       description = complaintData.filers?.[0]?.description || '';
     } else {
-      // Single filer: use matched filer's description
       description = matchedFiler?.description || complaintData.filers?.[0]?.description || '';
     }
-    
-    // Fallback: check root-level description field (for old complaints before this feature)
-    if (!description && complaintData.description) {
-      description = complaintData.description;
-    }
-    
+    if (!description && complaintData.description) description = complaintData.description;
+
     complaintData.description = description;
     complaintData.images = matchedFiler?.images || [];
 
@@ -271,7 +304,7 @@ const getComplaintByNumber = async (req, res) => {
   }
 };
 
-// ─── GET /api/complaints/:id — Single complaint by MongoDB _id ───────────────
+// ─── GET /api/complaints/:id ──────────────────────────────────────────────────
 
 const getComplaintById = async (req, res) => {
   try {
@@ -282,43 +315,30 @@ const getComplaintById = async (req, res) => {
 
     const complaintObj = complaint.toObject();
 
-    // If user is authenticated, find and return their specific description
     if (req.user?.email) {
       const matchedFiler = complaintObj.filers.find(
         (filer) => (filer.citizen?.email || '').trim().toLowerCase() === req.user.email.toLowerCase()
       );
-      
-      // Get the actual description from filers - NEVER generate from title
+
       let description = '';
       if (complaintObj.filers.length > 1) {
-        // Duplicate: use first filer's description
         description = complaintObj.filers?.[0]?.description || '';
       } else {
-        // Single filer: use matched filer's description
         description = matchedFiler?.description || complaintObj.filers?.[0]?.description || '';
       }
-      
-      // Fallback: check root-level description field (for old complaints before this feature)
-      if (!description && complaintObj.description) {
-        description = complaintObj.description;
-      }
-      
+      if (!description && complaintObj.description) description = complaintObj.description;
+
       complaintObj.description = description;
       complaintObj.images = matchedFiler?.images || [];
-      
+
       console.log(`[getComplaintById Auth] Email: ${req.user.email}, Complaint: ${complaintObj.complaintNumber}, Description: "${complaintObj.description?.substring(0, 60) || 'EMPTY'}"`);
     } else {
-      // If no user, return first filer's description (public access)
       let description = complaintObj.filers?.[0]?.description || '';
-      
-      // Fallback: check root-level description field (for old complaints before this feature)
-      if (!description && complaintObj.description) {
-        description = complaintObj.description;
-      }
-      
+      if (!description && complaintObj.description) description = complaintObj.description;
+
       complaintObj.description = description;
       complaintObj.images = complaintObj.filers?.[0]?.images || [];
-      
+
       console.log(`[getComplaintById Public] Complaint: ${complaintObj.complaintNumber}, Description: "${complaintObj.description?.substring(0, 60) || 'EMPTY'}"`);
     }
 
@@ -328,7 +348,7 @@ const getComplaintById = async (req, res) => {
   }
 };
 
-// ─── PUT /api/complaints/:id ─────────────────────────────────────────────────
+// ─── PUT /api/complaints/:id ──────────────────────────────────────────────────
 
 const updateComplaintStatus = async (req, res) => {
   try {
@@ -341,9 +361,7 @@ const updateComplaintStatus = async (req, res) => {
     };
 
     const parsedAfterImages = parseImages(afterImages);
-    if (parsedAfterImages.length > 0) {
-      updateFields.afterImages = parsedAfterImages;
-    }
+    if (parsedAfterImages.length > 0) updateFields.afterImages = parsedAfterImages;
 
     const complaint = await Complaint.findByIdAndUpdate(
       req.params.id,
@@ -355,7 +373,7 @@ const updateComplaintStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Complaint not found' });
     }
 
-// Populate officer name for email
+    // Populate officer name for email
     const populatedComplaint = await Complaint.findById(complaint._id).lean();
     if (populatedComplaint.assignedTo) {
       const User = require('../models/User');
@@ -377,30 +395,26 @@ const updateComplaintStatus = async (req, res) => {
   }
 };
 
-// ─── GET /api/complaints/my ──────────────────────────────────────────────────
-// Searches inside the filers array so merged complaints still appear
-// for every citizen who reported them.
+// ─── GET /api/complaints/my ───────────────────────────────────────────────────
 
 const getMyComplaints = async (req, res) => {
   try {
     const userEmail = (req.user.email || '').trim().toLowerCase();
-    
+
     const complaints = await Complaint.find({
       'filers.citizen.email': userEmail,
     }).sort({ createdAt: -1 });
 
-    // For each complaint, just copy the user's description to root level - NO modifications
     const processedComplaints = complaints.map(complaint => {
       const complaintData = complaint.toObject();
-      
+
       const matchedFiler = complaintData.filers.find(
         (filer) => (filer.citizen?.email || '').trim().toLowerCase() === userEmail
       );
-      
-      // Simply copy the description from filers array to root level - exactly what user typed
+
       complaintData.description = matchedFiler?.description || complaintData.filers?.[0]?.description || '';
-      complaintData.images = matchedFiler?.images || [];
-      
+      complaintData.images      = matchedFiler?.images || [];
+
       return complaintData;
     });
 
@@ -410,7 +424,7 @@ const getMyComplaints = async (req, res) => {
   }
 };
 
-// ─── GET /api/complaints/assigned ───────────────────────────────────────────
+// ─── GET /api/complaints/assigned ────────────────────────────────────────────
 
 const getAssignedComplaints = async (req, res) => {
   try {
@@ -422,75 +436,92 @@ const getAssignedComplaints = async (req, res) => {
   }
 };
 
-// ─── POST /api/complaints/classify ──────────────────────────────────────────
+// ─── Parse and validate AI response ──────────────────────────────────────────
+
+const parseAIResponse = (raw) => {
+  const cleaned = raw.replace(/```json|```/g, '').trim();
+  let parsed;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    const catMatch  = cleaned.match(/"category"\s*:\s*"([^"]+)"/);
+    const urgMatch  = cleaned.match(/"urgency"\s*:\s*"([^"]+)"/);
+    const deptMatch = cleaned.match(/"department"\s*:\s*"([^"]+)"/);
+    const resMatch  = cleaned.match(/"reason"\s*:\s*"([^"]+)"/);
+    parsed = {
+      category:   catMatch?.[1]  || 'Other',
+      urgency:    urgMatch?.[1]  || 'Low',
+      department: deptMatch?.[1] || 'Other',
+      reason:     resMatch?.[1]  || 'AI classified',
+    };
+  }
+  return {
+    category:   VALID_CATEGORIES.includes(parsed.category)   ? parsed.category   : 'Other',
+    urgency:    VALID_URGENCIES.includes(parsed.urgency)      ? parsed.urgency    : 'Low',
+    department: VALID_DEPARTMENTS.includes(parsed.department) ? parsed.department : 'Other',
+    reason:     parsed.reason || 'AI classified',
+  };
+};
+
+// ─── POST /api/complaints/classify ───────────────────────────────────────────
 
 const classifyComplaint = async (req, res) => {
+  const { title = '', description = '' } = req.body;
+
+  if (!title && !description) {
+    return res.status(400).json({ success: false, message: 'Title or description required' });
+  }
+
+  const prompt = CLASSIFICATION_PROMPT(title, description);
+
+  // ── PRIMARY: Groq (Llama 3.3 70B) ────────────────────────────────────────
   try {
-    const { title, description } = req.body;
-
-    if (!title && !description) {
-      return res.status(400).json({ success: false, message: 'Title or description required' });
-    }
-
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-    const prompt = `You are a government complaint classification system for India.
-Classify this public complaint into exactly one category from: Roads, Water, Electricity, Sanitation, Other.
-Also determine urgency: High, Medium, or Low.
-Also provide the responsible department from: PWD Department, Jal Board, Electricity Board, Municipal Corp, General Dept.
-
-Complaint Title: "${title || ''}"
-Complaint Description: "${description || ''}"
-
-Rules:
-- Roads: potholes, road damage, footpath, bridge, pavement issues
-- Water: water supply, pipe leaks, drainage, flooding, tap water issues
-- Electricity: streetlights, power cuts, electrical wires, transformer issues
-- Sanitation: garbage, waste collection, sewage, drain blockage, cleanliness
-- Other: anything that doesn't fit above
-
-Respond ONLY with valid JSON, no markdown, no extra text:
-{"category":"Roads","urgency":"High","department":"PWD Department","reason":"One line explanation"}`;
-
-    const result = await model.generateContent(prompt);
-    const raw = result.response.text().replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(raw);
-
-    const validCategories = ['Roads', 'Water', 'Electricity', 'Sanitation', 'Other'];
-    const validUrgencies  = ['High', 'Medium', 'Low'];
-    const validDepts      = ['PWD Department', 'Jal Board', 'Electricity Board', 'Municipal Corp', 'General Dept'];
-
-    res.status(200).json({
-      success: true,
-      data: {
-        category:   validCategories.includes(parsed.category)  ? parsed.category   : 'Other',
-        urgency:    validUrgencies.includes(parsed.urgency)    ? parsed.urgency    : 'Low',
-        department: validDepts.includes(parsed.department)     ? parsed.department : 'General Dept',
-        reason:     parsed.reason || 'Classified by AI',
-      }
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const completion = await groq.chat.completions.create({
+      model:       'llama-3.3-70b-versatile',
+      messages:    [{ role: 'user', content: prompt }],
+      temperature: 0.1,
+      max_tokens:  200,
     });
 
-  } catch (error) {
-    console.error('Gemini classification error:', error.message);
-    const text = `${req.body.title || ''} ${req.body.description || ''}`.toLowerCase();
-    let category = 'Other', urgency = 'Low', department = 'General Dept', reason = 'Keyword-based classification';
+    const raw    = completion.choices[0]?.message?.content || '';
+    const result = parseAIResponse(raw);
 
-    if (['pothole','road','footpath','bridge','pavement','highway','street','tar'].some(k => text.includes(k))) {
-      category = 'Roads'; urgency = 'High'; department = 'PWD Department'; reason = 'Road or infrastructure issue detected';
-    } else if (['water','pipe','supply','leak','flood','drainage','tap','borewell'].some(k => text.includes(k))) {
-      category = 'Water'; urgency = 'High'; department = 'Jal Board'; reason = 'Water supply or drainage issue detected';
-    } else if (['light','electricity','power','wire','transformer','electric','bulb','streetlight'].some(k => text.includes(k))) {
-      category = 'Electricity'; urgency = 'Medium'; department = 'Electricity Board'; reason = 'Electricity or lighting issue detected';
-    } else if (['garbage','waste','sanitation','trash','smell','sewage','drain','dustbin','litter'].some(k => text.includes(k))) {
-      category = 'Sanitation'; urgency = 'High'; department = 'Municipal Corp'; reason = 'Sanitation or waste issue detected';
+    console.log(`[Groq] "${title}" → ${result.category} / ${result.urgency} / ${result.department}`);
+    return res.status(200).json({ success: true, data: result });
+
+  } catch (groqError) {
+    console.error('[Groq] Error:', groqError.message, '— Falling back to Gemini...');
+
+    // ── FALLBACK: Gemini 2.0 Flash ────────────────────────────────────────
+    try {
+      const genAI  = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const model  = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const geminiResult = await model.generateContent(prompt);
+      const raw    = geminiResult.response.text();
+      const result = parseAIResponse(raw);
+
+      console.log(`[Gemini] "${title}" → ${result.category} / ${result.urgency} / ${result.department}`);
+      return res.status(200).json({ success: true, data: result });
+
+    } catch (geminiError) {
+      console.error('[Gemini] Error:', geminiError.message, '— Both AI failed.');
+
+      // ── LAST RESORT ───────────────────────────────────────────────────
+      return res.status(200).json({
+        success: true,
+        data: {
+          category:   'Other',
+          urgency:    'Low',
+          department: 'Other',
+          reason:     'AI unavailable. Please select department manually.',
+        },
+      });
     }
-
-    res.status(200).json({ success: true, data: { category, urgency, department, reason } });
   }
 };
 
-// ─── Exports ─────────────────────────────────────────────────────────────────
+// ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
   submitComplaint,
