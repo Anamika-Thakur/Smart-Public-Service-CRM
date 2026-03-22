@@ -31,7 +31,10 @@ const feedbackRoutes = require('./src/routes/feedbackRoutes');
 app.use('/api/feedback', feedbackRoutes);
 
 const PORT = process.env.PORT || 5000;
+const { startWhatsAppBot } = require('./src/config/whatsappBot');
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   startSLAService();
+  startWhatsAppBot();  // ✅ runs only once
 });
