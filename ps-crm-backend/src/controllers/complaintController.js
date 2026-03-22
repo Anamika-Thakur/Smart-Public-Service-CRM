@@ -294,7 +294,7 @@ const updateComplaintStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Complaint not found' });
     }
 
-    // Populate officer name for email
+// Populate officer name for email
     const populatedComplaint = await Complaint.findById(complaint._id).lean();
     if (populatedComplaint.assignedTo) {
       const User = require('../models/User');
@@ -306,7 +306,7 @@ const updateComplaintStatus = async (req, res) => {
     for (const filer of (populatedComplaint.filers || [])) {
       sendStatusUpdate({
         ...populatedComplaint,
-        citizen: filer.citizen,   // each filer gets their own personalised email
+        citizen: filer.citizen,
       });
     }
 
