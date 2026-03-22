@@ -15,6 +15,7 @@ import FeedbackPage from './pages/citizen/FeedbackPage';
 import OfficerDashboard from './pages/officer/OfficerDashboard';
 import PublicDashboard from './pages/public/PublicDashboard';
 import Notifications from './pages/Notifications';
+import Chatbot from './components/Chatbot/Chatbot';
 
 const ProtectedRoute = ({ children, roles }) => {
   const { user } = useAuth();
@@ -55,6 +56,8 @@ function App() {
 
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
+
+          <Chatbot />
 
         </BrowserRouter>
       </AuthProvider>

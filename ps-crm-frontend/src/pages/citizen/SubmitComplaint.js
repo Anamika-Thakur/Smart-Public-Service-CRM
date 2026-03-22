@@ -6,13 +6,27 @@ import API from '../../api';
 
 const UGC = { High: '#E65100', Medium: '#1565C0', Low: '#1B7A3E' };
 
+// ── Updated MCD Category Map (local version — expanded 16 categories) ────────
 const CATEGORY_MAP = {
-  'Roads':       { dept: 'PWD Department',    icon: '🚧' },
-  'Water':       { dept: 'Jal Board',         icon: '🚰' },
-  'Electricity': { dept: 'Electricity Board', icon: '💡' },
-  'Sanitation':  { dept: 'Municipal Corp',    icon: '🗑️' },
-  'Other':       { dept: 'General Dept',      icon: '📋' },
+  'Sanitation':      { dept: 'Sanitation & Solid Waste Management', icon: '🗑️' },
+  'Roads':           { dept: 'Roads & Infrastructure',              icon: '🚧' },
+  'Water':           { dept: 'Water Supply & Drainage',             icon: '🚰' },
+  'Electricity':     { dept: 'Street Lighting',                     icon: '💡' },
+  'Health':          { dept: 'Health Services',                     icon: '🏥' },
+  'Education':       { dept: 'Education (MCD Schools)',             icon: '🎓' },
+  'Infrastructure':  { dept: 'Building & Planning',                 icon: '🏗️' },
+  'Environment':     { dept: 'Parks & Horticulture',                icon: '🌿' },
+  'Finance':         { dept: 'Property Tax',                        icon: '💰' },
+  'Administration':  { dept: 'Birth & Death Registration',          icon: '📄' },
+  'Food Safety':     { dept: 'Food Safety & Slaughterhouse',        icon: '🍽️' },
+  'Safety':          { dept: 'Fire Services',                       icon: '🚒' },
+  'Animal Welfare':  { dept: 'Veterinary Services',                 icon: '🐾' },
+  'Encroachment':    { dept: 'Encroachment Removal',                icon: '🚫' },
+  'Signage':         { dept: 'Advertisement & Signage',             icon: '📢' },
+  'Other':           { dept: 'Other',                               icon: '📋' },
 };
+
+const ALL_CATEGORIES = Object.keys(CATEGORY_MAP);
 
 const WARDS = ['A','B','C','D','E','F','G','H','I','J','K','L','M',
                'N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
@@ -37,7 +51,7 @@ export default function SubmitComplaint() {
   const [error, setError]         = useState('');
   const [dragOver, setDragOver]   = useState(false);
 
-  // ── Auto-categorize via backend (Gemini) ────────────────────────────────
+  // ── Auto-categorize via backend ──────────────────────────────────────────
   const autoClassify = async (title, description) => {
     const text = `${title} ${description}`.trim();
     if (text.length < 15) { setAiResult(null); return; }
@@ -123,8 +137,10 @@ export default function SubmitComplaint() {
               {[
                 { k: tx('Complaint ID', lang),    v: success.complaintNumber || `CMP-${success._id?.slice(-8).toUpperCase()}` },
                 { k: tx('Title', lang),           v: success.title },
+                // ── GitHub addition: show description on success screen ──
                 { k: tx('Description', lang),     v: success.filers?.[0]?.description?.substring(0, 100) || form.description?.substring(0, 100) || 'N/A' },
-                { k: tx('Category', lang),        v: tx(success.category, lang) },
+                { k: tx('Category', lang),        v: success.category },
+                { k: tx('Department', lang),      v: CATEGORY_MAP[success.category]?.dept || 'Other' },
                 { k: tx('Urgency', lang),         v: tx(success.urgency, lang) },
                 { k: tx('Ward', lang),            v: success.location?.ward || 'N/A' },
                 { k: tx('Status', lang),          v: tx('Pending Review', lang), highlight: true },
@@ -139,7 +155,7 @@ export default function SubmitComplaint() {
                   justifyContent: 'space-between',
                   marginBottom: 12,
                   paddingBottom: 12,
-                  borderBottom: '1px solid #E8EEF8'
+                  borderBottom: '1px solid #E8EEF8',
                 }}>
                   <span style={styles.successKey}>{r.k}</span>
                   <span style={{ ...styles.successVal, ...(r.highlight ? { color: '#1B7A3E', fontWeight: 700 } : {}), marginTop: r.k === tx('Description', lang) ? 8 : 0 }}>{r.v}</span>
@@ -147,6 +163,7 @@ export default function SubmitComplaint() {
               ))}
             </div>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 24 }}>
+              {/* ── GitHub addition: include email in track URL ── */}
               <button style={styles.btnPrimary} onClick={() => navigate(`/citizen/track?id=${success.complaintNumber}&email=${encodeURIComponent(form.citizen.email)}`)}>
                 {tx('🔍 Track Complaint', lang)}
               </button>
@@ -211,11 +228,13 @@ export default function SubmitComplaint() {
                   <div style={styles.aiGrid}>
                     <div style={styles.aiItem}>
                       <span style={styles.aiKey}>{tx('Category', lang)}</span>
-                      <span style={styles.aiVal}>{CATEGORY_MAP[aiResult.category]?.icon} {tx(aiResult.category, lang)}</span>
+                      <span style={styles.aiVal}>
+                        {CATEGORY_MAP[aiResult.category]?.icon} {aiResult.category}
+                      </span>
                     </div>
                     <div style={styles.aiItem}>
                       <span style={styles.aiKey}>{tx('Department', lang)}</span>
-                      <span style={{ ...styles.aiVal, color: '#1565C0' }}>{aiResult.dept}</span>
+                      <span style={{ ...styles.aiVal, color: '#1565C0', fontSize: 12 }}>{aiResult.dept}</span>
                     </div>
                     <div style={styles.aiItem}>
                       <span style={styles.aiKey}>{tx('Urgency', lang)}</span>
@@ -246,8 +265,8 @@ export default function SubmitComplaint() {
                   <select style={{ ...styles.input, borderColor: aiResult ? '#16A34A' : '#D8E2F0' }}
                     value={form.category}
                     onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
-                    {['Roads', 'Water', 'Electricity', 'Sanitation', 'Other'].map(c => (
-                      <option key={c} value={c}>{tx(c, lang)}</option>
+                    {ALL_CATEGORIES.map(c => (
+                      <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
                 </div>
@@ -264,6 +283,13 @@ export default function SubmitComplaint() {
                   </select>
                 </div>
               </div>
+
+              {/* Show matched department below dropdowns */}
+              {form.category && CATEGORY_MAP[form.category] && (
+                <div style={{ background: '#EEF2FF', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#0F2557', marginTop: -8, marginBottom: 8 }}>
+                  🏢 <strong>{tx('Department', lang)}:</strong> {CATEGORY_MAP[form.category].dept}
+                </div>
+              )}
             </div>
 
             {/* Image Evidence Upload */}
@@ -380,9 +406,18 @@ export default function SubmitComplaint() {
               </div>
               <div style={styles.formGroup}>
                 <label style={styles.label}>{tx('Phone Number', lang)}</label>
-                <input style={styles.input} placeholder={tx('10-digit mobile number', lang)}
+                {/* ── Local version: digit-only, max 10 chars ── */}
+                <input
+                  style={styles.input}
+                  placeholder={tx('10-digit mobile number', lang)}
+                  type="tel"
+                  maxLength={10}
                   value={form.citizen.phone}
-                  onChange={e => setForm(f => ({ ...f, citizen: { ...f.citizen, phone: e.target.value } }))} />
+                  onChange={e => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setForm(f => ({ ...f, citizen: { ...f.citizen, phone: val } }));
+                  }}
+                />
               </div>
             </div>
 
@@ -406,21 +441,18 @@ export default function SubmitComplaint() {
               <p style={{ fontSize: 13, color: '#6B7FA3', marginBottom: 16, lineHeight: 1.6 }}>
                 {tx('Just describe your complaint — our AI automatically detects the category, department, and urgency level for you.', lang)}
               </p>
-              {[
-                { icon: '🚧', label: 'Roads & Potholes', cat: 'Roads' },
-                { icon: '🚰', label: 'Water Supply',     cat: 'Water' },
-                { icon: '💡', label: 'Street Lights',    cat: 'Electricity' },
-                { icon: '🗑️', label: 'Garbage/Waste',   cat: 'Sanitation' },
-                { icon: '📋', label: 'Other Issues',     cat: 'Other' },
-              ].map((c, i) => (
+              {Object.entries(CATEGORY_MAP).slice(0, 8).map(([cat, { icon, dept }], i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  <span style={{ fontSize: 18 }}>{c.icon}</span>
+                  <span style={{ fontSize: 18 }}>{icon}</span>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#0F2557' }}>{c.label}</div>
-                    <div style={{ fontSize: 11, color: '#6B7FA3' }}>{CATEGORY_MAP[c.cat].dept}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#0F2557' }}>{cat}</div>
+                    <div style={{ fontSize: 11, color: '#6B7FA3' }}>{dept}</div>
                   </div>
                 </div>
               ))}
+              <div style={{ fontSize: 11, color: '#9EB3CC', marginTop: 8 }}>
+                + {Object.keys(CATEGORY_MAP).length - 8} more departments
+              </div>
             </div>
 
             <div style={{ ...styles.card, marginTop: 16 }}>
