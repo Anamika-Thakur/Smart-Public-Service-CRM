@@ -245,8 +245,19 @@ export default function CitizenDashboard() {
 
   useEffect(() => {
     API.get('/complaints/my')
-      .then(res => { setComplaints(res.data.data); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(res => {
+        const data = res.data.data || [];
+        console.log(`[CitizenDashboard] Loaded ${data.length} complaints:`);
+        data.forEach((c, i) => {
+          console.log(`  [${i}] ${c.complaintNumber || c._id} - Title: "${c.title}" - Description: "${c.description?.substring(0, 50) || 'EMPTY'}"`);
+        });
+        setComplaints(data); 
+        setLoading(false); 
+      })
+      .catch(err => { 
+        console.error('[CitizenDashboard] Error fetching complaints:', err);
+        setLoading(false); 
+      });
   }, []);
 
   const filtered = filter === 'All' ? complaints : complaints.filter(c => c.status === filter);
@@ -435,7 +446,12 @@ export default function CitizenDashboard() {
                         📅 {new Date(c.createdAt).toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN')}
                       </span>
                     </div>
-                    <div style={styles.complaintDesc}>{c.description?.slice(0, 100)}...</div>
+                    <div style={styles.complaintDesc}>
+                      {c.description?.trim() 
+                        ? c.description.slice(0, 120) + (c.description.length > 120 ? '...' : '')
+                        : ''
+                      }
+                    </div>
                   </div>
                   <div style={styles.complaintRight}>
                     <span style={{ ...styles.statusBadge, background: statusColor[c.status]?.bg, color: statusColor[c.status]?.color }}>

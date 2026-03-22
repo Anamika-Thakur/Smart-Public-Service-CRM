@@ -133,6 +133,23 @@ export default function ComplaintsList() {
     return img.data || '';
   };
 
+  const getComplaintSummary = (complaint) => {
+    const text = complaint?.description?.trim();
+
+    if (text) {
+      return text;
+    }
+
+    const title = complaint?.title?.trim() || 'public service issue';
+    const category = complaint?.category?.toLowerCase() || 'public service';
+    const urgency = complaint?.urgency ? `${complaint.urgency.toLowerCase()} priority` : 'priority';
+    const ward = complaint?.location?.ward || 'the concerned ward';
+    const locality = complaint?.location?.locality?.trim();
+    const locationText = locality ? `${locality}, ${ward}` : ward;
+
+    return `This complaint appears to concern ${title.toLowerCase()} under the ${category} category at ${locationText} and has been marked as ${urgency}. The field officer should inspect the site, verify the cause of the issue, and take the necessary corrective action on the ground.`;
+  };
+
   const statusSteps = [
     { key: 'Pending',     label: 'Submitted',   icon: '📝' },
     { key: 'In Progress', label: 'In Progress', icon: '🔧' },
@@ -240,8 +257,8 @@ export default function ComplaintsList() {
                     <td style={styles.td}><span style={styles.idBadge}>#{String(i + 1).padStart(3, '0')}</span></td>
 
                     <td style={styles.td}>
-                      <div style={{ fontWeight: 600, color: '#0F2557', maxWidth: 160 }}>{c.title}</div>
-                      <div style={{ fontSize: 11, color: '#6B7FA3', marginTop: 2 }}>{c.description?.slice(0, 40)}...</div>
+                      <div style={{ fontWeight: 600, color: '#0F2557', maxWidth: 220, lineHeight: 1.4 }}>{c.title}</div>
+                      <div style={styles.descriptionPreview}>{getComplaintSummary(c)}</div>
                     </td>
 
                     <td style={styles.td}>
@@ -372,12 +389,10 @@ export default function ComplaintsList() {
                   </div>
 
                   {/* ── Description ── */}
-                  {d?.description && (
-                    <div style={{ marginTop: 12, padding: '12px 16px', background: '#F8FAFC', borderRadius: 8, border: '1px solid #E8EEF8' }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7FA3', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>📝 Description</div>
-                      <div style={{ fontSize: 13, color: '#3A4E70', lineHeight: 1.6 }}>{d.description}</div>
-                    </div>
-                  )}
+                  <div style={{ marginTop: 12, padding: '12px 16px', background: '#F8FAFC', borderRadius: 8, border: '1px solid #E8EEF8' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7FA3', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>📝 Description</div>
+                    <div style={{ fontSize: 13, color: '#3A4E70', lineHeight: 1.6 }}>{getComplaintSummary(d)}</div>
+                  </div>
 
                   {/* ── Resolution Note ── */}
                   {d?.resolution && (
@@ -547,6 +562,17 @@ const styles = {
   catBadge:     { padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: '#EEF2FF', color: '#0F2557' },
   actionSelect: { padding: '6px 10px', border: '1.5px solid #D8E2F0', borderRadius: 6, fontSize: 12, fontFamily: "'DM Sans',sans-serif", outline: 'none', background: '#fff', color: '#0F2557' },
   btnTrack:     { padding: '6px 14px', border: '1.5px solid #0F2557', borderRadius: 6, background: '#EEF2FF', color: '#0F2557', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' },
+  descriptionPreview: {
+    fontSize: 11,
+    color: '#6B7FA3',
+    marginTop: 4,
+    maxWidth: 220,
+    lineHeight: 1.5,
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
+  },
 };
 
 const modal = {

@@ -6,7 +6,7 @@ import API from '../../api';
 
 const UGC = { High: '#E65100', Medium: '#1565C0', Low: '#1B7A3E' };
 
-// ── Updated MCD Category Map ─────────────────────────────────────────────────
+// ── Updated MCD Category Map (local version — expanded 16 categories) ────────
 const CATEGORY_MAP = {
   'Sanitation':      { dept: 'Sanitation & Solid Waste Management', icon: '🗑️' },
   'Roads':           { dept: 'Roads & Infrastructure',              icon: '🚧' },
@@ -51,7 +51,7 @@ export default function SubmitComplaint() {
   const [error, setError]         = useState('');
   const [dragOver, setDragOver]   = useState(false);
 
-  // ── Auto-categorize via backend (Gemini) ────────────────────────────────
+  // ── Auto-categorize via backend ──────────────────────────────────────────
   const autoClassify = async (title, description) => {
     const text = `${title} ${description}`.trim();
     if (text.length < 15) { setAiResult(null); return; }
@@ -137,6 +137,8 @@ export default function SubmitComplaint() {
               {[
                 { k: tx('Complaint ID', lang),    v: success.complaintNumber || `CMP-${success._id?.slice(-8).toUpperCase()}` },
                 { k: tx('Title', lang),           v: success.title },
+                // ── GitHub addition: show description on success screen ──
+                { k: tx('Description', lang),     v: success.filers?.[0]?.description?.substring(0, 100) || form.description?.substring(0, 100) || 'N/A' },
                 { k: tx('Category', lang),        v: success.category },
                 { k: tx('Department', lang),      v: CATEGORY_MAP[success.category]?.dept || 'Other' },
                 { k: tx('Urgency', lang),         v: tx(success.urgency, lang) },
@@ -147,14 +149,22 @@ export default function SubmitComplaint() {
                     : `${images.length} image${images.length !== 1 ? 's' : ''} uploaded` },
                 { k: tx('SLA Deadline', lang),    v: new Date(success.sla?.deadline).toLocaleString(lang === 'hi' ? 'hi-IN' : 'en-IN') },
               ].map((r, i) => (
-                <div key={i} style={styles.successRow}>
+                <div key={i} style={{
+                  display: 'flex',
+                  flexDirection: r.k === tx('Description', lang) ? 'column' : 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 12,
+                  paddingBottom: 12,
+                  borderBottom: '1px solid #E8EEF8',
+                }}>
                   <span style={styles.successKey}>{r.k}</span>
-                  <span style={{ ...styles.successVal, ...(r.highlight ? { color: '#1B7A3E', fontWeight: 700 } : {}) }}>{r.v}</span>
+                  <span style={{ ...styles.successVal, ...(r.highlight ? { color: '#1B7A3E', fontWeight: 700 } : {}), marginTop: r.k === tx('Description', lang) ? 8 : 0 }}>{r.v}</span>
                 </div>
               ))}
             </div>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 24 }}>
-              <button style={styles.btnPrimary} onClick={() => navigate(`/citizen/track?id=${success.complaintNumber}`)}>
+              {/* ── GitHub addition: include email in track URL ── */}
+              <button style={styles.btnPrimary} onClick={() => navigate(`/citizen/track?id=${success.complaintNumber}&email=${encodeURIComponent(form.citizen.email)}`)}>
                 {tx('🔍 Track Complaint', lang)}
               </button>
               <button style={styles.btnOutline} onClick={() => {
@@ -396,16 +406,17 @@ export default function SubmitComplaint() {
               </div>
               <div style={styles.formGroup}>
                 <label style={styles.label}>{tx('Phone Number', lang)}</label>
-               <input
-                style={styles.input}
-                placeholder={tx('10-digit mobile number', lang)}
-                type="tel"
-                maxLength={10}
-                value={form.citizen.phone}
-                onChange={e => {
-                const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                setForm(f => ({ ...f, citizen: { ...f.citizen, phone: val } }));
-                }}
+                {/* ── Local version: digit-only, max 10 chars ── */}
+                <input
+                  style={styles.input}
+                  placeholder={tx('10-digit mobile number', lang)}
+                  type="tel"
+                  maxLength={10}
+                  value={form.citizen.phone}
+                  onChange={e => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setForm(f => ({ ...f, citizen: { ...f.citizen, phone: val } }));
+                  }}
                 />
               </div>
             </div>

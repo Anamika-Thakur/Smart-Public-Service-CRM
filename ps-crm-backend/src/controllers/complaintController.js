@@ -88,25 +88,155 @@ IMPORTANT RULES:
 Return ONLY a raw JSON object. No markdown. No explanation. No extra text:
 {"category":"Encroachment","urgency":"Medium","department":"Encroachment Removal","reason":"Vendor illegally occupying public footpath"}`;
 
-// POST /api/complaints
+// ─── Dedup + semantic helpers (added) ────────────────────────────────────────
+
+const URGENCY_RANK         = { Low: 1, Medium: 2, High: 3 };
+const SIMILARITY_THRESHOLD = 0.82;
+
+const getEmbedding = async (text) => {
+  try {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
+    const result = await model.embedContent(text);
+    return result.embedding.values;
+  } catch (err) {
+    console.error('Embedding error (non-fatal):', err.message);
+    return null;
+  }
+};
+
+const cosineSimilarity = (a, b) => {
+  let dot = 0, normA = 0, normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot   += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  if (normA === 0 || normB === 0) return 0;
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+};
+
+// ─── POST /api/complaints ─────────────────────────────────────────────────────
+
 const submitComplaint = async (req, res) => {
   try {
-    const { urgency, images, ...rest } = req.body;
-    const deadline = setSLADeadline(urgency || 'Low');
+    const {
+      title,
+      description,
+      category,
+      urgency  = 'Low',
+      location = {},
+      citizen  = {},
+      images,
+      ...rest
+    } = req.body;
+
+    const { ward = '', locality = '', address = '' } = location;
+    const deadline = setSLADeadline(urgency);
+
+    // ── 1. Build dedup fingerprint ──────────────────────────────────────────
+    const duplicateKey = Complaint.buildDuplicateKey(ward, locality, category);
+
+    // ── 2. Generate embedding ───────────────────────────────────────────────
+    const incomingText      = `${title} ${description}`.trim();
+    const incomingEmbedding = await getEmbedding(incomingText);
+
+    // ── 3. Fetch open candidates ────────────────────────────────────────────
+    const candidates = await Complaint
+      .find({ duplicateKey, status: { $in: ['Pending', 'In Progress'] } })
+      .select('+descriptionEmbedding');
+
+    // ── 4. Semantic matching ────────────────────────────────────────────────
+    let bestMatch = null;
+    let bestScore = -1;
+
+    for (const candidate of candidates) {
+      if (!incomingEmbedding || !candidate.descriptionEmbedding?.length) {
+        if (!bestMatch) bestMatch = candidate;
+        continue;
+      }
+      const score = cosineSimilarity(incomingEmbedding, candidate.descriptionEmbedding);
+      console.log(`Semantic similarity vs ${candidate.complaintNumber}: ${score.toFixed(4)}`);
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = score >= SIMILARITY_THRESHOLD ? candidate : null;
+      }
+    }
+
+    if (bestMatch) {
+      // ── DUPLICATE PATH ────────────────────────────────────────────────────
+      const newFiler = {
+        citizen: {
+          name:  citizen.name  || '',
+          email: citizen.email || '',
+          phone: citizen.phone || '',
+        },
+        description,
+        images:  parseImages(images),
+        filedAt: new Date(),
+      };
+
+      const updateOps = { $push: { filers: newFiler } };
+      if (URGENCY_RANK[urgency] > URGENCY_RANK[bestMatch.urgency]) {
+        updateOps.$set = { urgency };
+      }
+
+      await Complaint.updateOne({ _id: bestMatch._id }, updateOps);
+      const merged = await Complaint.findById(bestMatch._id);
+
+      sendComplaintConfirmation({
+        ...merged.toObject(),
+        citizen:      newFiler.citizen,
+        _isDuplicate: true,
+      });
+
+      return res.status(200).json({
+        success:         true,
+        isDuplicate:     true,
+        similarityScore: bestScore > 0 ? parseFloat(bestScore.toFixed(4)) : null,
+        message: `Your complaint has been linked to an existing report: ${merged.complaintNumber}. A single officer will resolve it.`,
+        data: merged,
+      });
+    }
+
+    // ── FRESH COMPLAINT PATH ──────────────────────────────────────────────
     const complaint = await Complaint.create({
-      ...rest, urgency,
-      images: parseImages(images),
+      ...rest,
+      title,
+      category,
+      urgency,
+      duplicateKey,
+      descriptionEmbedding: incomingEmbedding ?? undefined,
+      location: { address, ward, locality },
+      filers: [{
+        citizen: {
+          name:  citizen.name  || '',
+          email: citizen.email || '',
+          phone: citizen.phone || '',
+        },
+        description,
+        images:  parseImages(images),
+        filedAt: new Date(),
+      }],
       sla: { deadline, escalated: false, escalatedAt: null },
     });
+
     const savedComplaint = await Complaint.findById(complaint._id);
-    sendComplaintConfirmation(savedComplaint);
-    res.status(201).json({ success: true, data: savedComplaint });
+
+    sendComplaintConfirmation({
+      ...savedComplaint.toObject(),
+      citizen: savedComplaint.filers[0]?.citizen || {},
+    });
+
+    return res.status(201).json({ success: true, isDuplicate: false, data: savedComplaint });
+
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
 };
 
-// GET /api/complaints
+// ─── GET /api/complaints ──────────────────────────────────────────────────────
+
 const getAllComplaints = async (req, res) => {
   try {
     const complaints = await Complaint.find().sort({ createdAt: -1 });
@@ -116,31 +246,104 @@ const getAllComplaints = async (req, res) => {
   }
 };
 
-// GET /api/complaints/track/:complaintNumber
+// ─── GET /api/complaints/track/:complaintNumber ───────────────────────────────
+
 const getComplaintByNumber = async (req, res) => {
   try {
+    const complaintNumber = req.params.complaintNumber.toUpperCase();
+    const email = (req.query.email || '').trim().toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Filer email is required to track a complaint.',
+      });
+    }
+
     const complaint = await Complaint.findOne({
-      complaintNumber: req.params.complaintNumber.toUpperCase(),
+      complaintNumber,
+      'filers.citizen.email': email,
     });
-    if (!complaint) return res.status(404).json({ success: false, message: 'Complaint not found' });
-    res.status(200).json({ success: true, data: complaint });
+
+    if (!complaint) {
+      return res.status(404).json({
+        success: false,
+        message: 'Complaint not found for this complaint number and email.',
+      });
+    }
+
+    const matchedFiler = complaint.filers.find(
+      (filer) => (filer.citizen?.email || '').trim().toLowerCase() === email
+    );
+
+    const complaintData = complaint.toObject();
+    complaintData.citizen = matchedFiler?.citizen || complaintData.filers?.[0]?.citizen || null;
+
+    let description = '';
+    if (complaintData.filers.length > 1) {
+      description = complaintData.filers?.[0]?.description || '';
+    } else {
+      description = matchedFiler?.description || complaintData.filers?.[0]?.description || '';
+    }
+    if (!description && complaintData.description) description = complaintData.description;
+
+    complaintData.description = description;
+    complaintData.images = matchedFiler?.images || [];
+
+    console.log(`[getComplaintByNumber] Email: ${email}, Complaint: ${complaintData.complaintNumber}, Filers: ${complaintData.filers.length}, Description: "${complaintData.description?.substring(0, 60) || 'EMPTY'}"`);
+
+    res.status(200).json({ success: true, data: complaintData });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// GET /api/complaints/:id
+// ─── GET /api/complaints/:id ──────────────────────────────────────────────────
+
 const getComplaintById = async (req, res) => {
   try {
     const complaint = await Complaint.findById(req.params.id);
-    if (!complaint) return res.status(404).json({ success: false, message: 'Complaint not found' });
-    res.status(200).json({ success: true, data: complaint });
+    if (!complaint) {
+      return res.status(404).json({ success: false, message: 'Complaint not found' });
+    }
+
+    const complaintObj = complaint.toObject();
+
+    if (req.user?.email) {
+      const matchedFiler = complaintObj.filers.find(
+        (filer) => (filer.citizen?.email || '').trim().toLowerCase() === req.user.email.toLowerCase()
+      );
+
+      let description = '';
+      if (complaintObj.filers.length > 1) {
+        description = complaintObj.filers?.[0]?.description || '';
+      } else {
+        description = matchedFiler?.description || complaintObj.filers?.[0]?.description || '';
+      }
+      if (!description && complaintObj.description) description = complaintObj.description;
+
+      complaintObj.description = description;
+      complaintObj.images = matchedFiler?.images || [];
+
+      console.log(`[getComplaintById Auth] Email: ${req.user.email}, Complaint: ${complaintObj.complaintNumber}, Description: "${complaintObj.description?.substring(0, 60) || 'EMPTY'}"`);
+    } else {
+      let description = complaintObj.filers?.[0]?.description || '';
+      if (!description && complaintObj.description) description = complaintObj.description;
+
+      complaintObj.description = description;
+      complaintObj.images = complaintObj.filers?.[0]?.images || [];
+
+      console.log(`[getComplaintById Public] Complaint: ${complaintObj.complaintNumber}, Description: "${complaintObj.description?.substring(0, 60) || 'EMPTY'}"`);
+    }
+
+    res.status(200).json({ success: true, data: complaintObj });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// PUT /api/complaints/:id
+// ─── PUT /api/complaints/:id ──────────────────────────────────────────────────
+
 const updateComplaintStatus = async (req, res) => {
   try {
     const { status, resolution, assignedTo, afterImages } = req.body;
@@ -161,24 +364,49 @@ const updateComplaintStatus = async (req, res) => {
       const officer = await User.findById(populatedComplaint.assignedTo).select('name');
       populatedComplaint.assignedOfficerName = officer?.name || 'Field Officer';
     }
-    sendStatusUpdate(populatedComplaint);
+
+    // Send status update to ALL filers so everyone is notified
+    for (const filer of (populatedComplaint.filers || [])) {
+      sendStatusUpdate({
+        ...populatedComplaint,
+        citizen: filer.citizen,
+      });
+    }
+
     res.status(200).json({ success: true, data: complaint });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// GET /api/complaints/my
+// ─── GET /api/complaints/my ───────────────────────────────────────────────────
+
 const getMyComplaints = async (req, res) => {
   try {
-    const complaints = await Complaint.find({ 'citizen.email': req.user.email }).sort({ createdAt: -1 });
-    res.status(200).json({ success: true, data: complaints });
+    const userEmail = (req.user.email || '').trim().toLowerCase();
+
+    const complaints = await Complaint.find({
+      'filers.citizen.email': userEmail,
+    }).sort({ createdAt: -1 });
+
+    const processedComplaints = complaints.map(complaint => {
+      const complaintData = complaint.toObject();
+      const matchedFiler = complaintData.filers.find(
+        (filer) => (filer.citizen?.email || '').trim().toLowerCase() === userEmail
+      );
+      complaintData.description = matchedFiler?.description || complaintData.filers?.[0]?.description || '';
+      complaintData.images      = matchedFiler?.images || [];
+      return complaintData;
+    });
+
+    res.status(200).json({ success: true, data: processedComplaints });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// GET /api/complaints/assigned
+// ─── GET /api/complaints/assigned ────────────────────────────────────────────
+
 const getAssignedComplaints = async (req, res) => {
   try {
     const complaints = await Complaint.find({ assignedTo: req.user._id.toString() }).sort({ createdAt: -1 });
@@ -188,7 +416,8 @@ const getAssignedComplaints = async (req, res) => {
   }
 };
 
-// ── Parse and validate AI response ──────────────────────────────────────────
+// ─── Parse and validate AI response ──────────────────────────────────────────
+
 const parseAIResponse = (raw) => {
   const cleaned = raw.replace(/```json|```/g, '').trim();
   let parsed;
@@ -212,7 +441,8 @@ const parseAIResponse = (raw) => {
   return { category: finalCategory, urgency: finalUrgency, department: finalDepartment, reason: parsed.reason || 'AI classified' };
 };
 
-// POST /api/complaints/classify
+// ─── POST /api/complaints/classify ───────────────────────────────────────────
+
 const classifyComplaint = async (req, res) => {
   const { title = '', description = '' } = req.body;
 
@@ -228,7 +458,7 @@ const classifyComplaint = async (req, res) => {
     const completion = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [{ role: 'user', content: prompt }],
-      temperature: 0.1,  // low temperature = more consistent output
+      temperature: 0.1,
       max_tokens: 200,
     });
 
@@ -241,7 +471,7 @@ const classifyComplaint = async (req, res) => {
   } catch (groqError) {
     console.error('[Groq] Error:', groqError.message, '— Falling back to Gemini...');
 
-    // ── FALLBACK: Gemini 2.0 Flash ──────────────────────────────────────────
+    // ── FALLBACK: Gemini 2.0 Flash ────────────────────────────────────────
     try {
       const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
       const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
@@ -255,7 +485,6 @@ const classifyComplaint = async (req, res) => {
     } catch (geminiError) {
       console.error('[Gemini] Error:', geminiError.message, '— Both AI failed.');
 
-      // ── LAST RESORT: return Other ───────────────────────────────────────
       return res.status(200).json({
         success: true,
         data: {
@@ -268,6 +497,8 @@ const classifyComplaint = async (req, res) => {
     }
   }
 };
+
+// ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
   submitComplaint,
