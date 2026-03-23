@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLang, tx } from '../../context/LanguageContext';
@@ -6,7 +6,6 @@ import API from '../../api';
 
 const UGC = { High: '#E65100', Medium: '#1565C0', Low: '#1B7A3E' };
 
-// ── Updated MCD Category Map (local version — expanded 16 categories) ────────
 const CATEGORY_MAP = {
   'Sanitation':      { dept: 'Sanitation & Solid Waste Management', icon: '🗑️' },
   'Roads':           { dept: 'Roads & Infrastructure',              icon: '🚧' },
@@ -31,12 +30,90 @@ const ALL_CATEGORIES = Object.keys(CATEGORY_MAP);
 const WARDS = ['A','B','C','D','E','F','G','H','I','J','K','L','M',
                'N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
 
+// ── useVoice hook (Mayur's feature) ─────────────────────────────────────────
+function useVoice(lang, onResult) {
+  const [listening, setListening] = useState(false);
+  const recRef = useRef(null);
+
+  const start = useCallback(() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert('Voice input not supported. Please use Chrome or Edge.'); return; }
+    const r = new SR();
+    r.lang = lang === 'hi' ? 'hi-IN' : 'en-IN';
+    r.continuous     = false;
+    r.interimResults = false;
+    r.onstart  = () => setListening(true);
+    r.onend    = () => setListening(false);
+    r.onerror  = () => setListening(false);
+    r.onresult = (e) => { onResult(e.results[0][0].transcript); };
+    recRef.current = r;
+    r.start();
+  }, [lang, onResult]);
+
+  const stop = useCallback(() => {
+    recRef.current?.stop();
+    setListening(false);
+  }, []);
+
+  return { listening, start, stop };
+}
+
+// ── VoiceInput — input/textarea with mic inside at bottom-right ──────────────
+function VoiceInput({ value, onChange, placeholder, lang, multiline = false, style = {} }) {
+  const { listening, start, stop } = useVoice(lang, (text) => {
+    onChange(value ? value + ' ' + text : text);
+  });
+
+  const inputStyle = {
+    width: '100%',
+    padding: multiline ? '10px 13px 40px 13px' : '10px 44px 10px 13px',
+    border: `1.5px solid ${listening ? '#DC2626' : '#D8E2F0'}`,
+    borderRadius: 8, fontSize: 14,
+    fontFamily: "'DM Sans', sans-serif",
+    outline: 'none',
+    background: listening ? '#FFF5F5' : '#fff',
+    boxSizing: 'border-box',
+    transition: 'all 0.2s',
+    ...style,
+  };
+
+  const micStyle = {
+    position: 'absolute',
+    right: 10, bottom: 10,
+    width: 28, height: 28,
+    border: listening ? '1.5px solid #DC2626' : '1.5px solid #D8E2F0',
+    borderRadius: '50%',
+    background: listening ? '#DC2626' : '#F8FAFC',
+    cursor: 'pointer', fontSize: 13,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    animation: listening ? 'micpulse 1s infinite' : 'none',
+    transition: 'all 0.2s',
+    zIndex: 2,
+  };
+
+  return (
+    <div style={{ position: 'relative' }}>
+      {multiline
+        ? <textarea value={value} onChange={e => onChange(e.target.value)}
+            placeholder={listening ? (lang === 'hi' ? '🎤 बोलें...' : '🎤 Speak now...') : placeholder}
+            style={{ ...inputStyle, resize: 'vertical', minHeight: 120 }} />
+        : <input value={value} onChange={e => onChange(e.target.value)}
+            placeholder={listening ? (lang === 'hi' ? '🎤 बोलें...' : '🎤 Speak now...') : placeholder}
+            style={inputStyle} />
+      }
+      <button type="button" onClick={listening ? stop : start} style={micStyle} title={listening ? 'Stop' : 'Click to speak'}>
+        {listening ? '⏹' : '🎤'}
+      </button>
+    </div>
+  );
+}
+
 export default function SubmitComplaint() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { lang } = useLang();
   const fileInputRef = useRef();
-  const debounceRef = useRef(null);
+  const debounceRef  = useRef(null);
 
   const [form, setForm] = useState({
     title: '', description: '', category: 'Other', urgency: 'Low',
@@ -51,7 +128,6 @@ export default function SubmitComplaint() {
   const [error, setError]         = useState('');
   const [dragOver, setDragOver]   = useState(false);
 
-  // ── Auto-categorize via backend ──────────────────────────────────────────
   const autoClassify = async (title, description) => {
     const text = `${title} ${description}`.trim();
     if (text.length < 15) { setAiResult(null); return; }
@@ -72,13 +148,10 @@ export default function SubmitComplaint() {
     clearTimeout(debounceRef.current);
     const text = `${form.title} ${form.description}`.trim();
     if (text.length < 15) { setAiResult(null); return; }
-    debounceRef.current = setTimeout(() => {
-      autoClassify(form.title, form.description);
-    }, 800);
+    debounceRef.current = setTimeout(() => autoClassify(form.title, form.description), 800);
     return () => clearTimeout(debounceRef.current);
   }, [form.title, form.description]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Image Handling ───────────────────────────────────────────────────────
   const handleFiles = (files) => {
     const allowed = Array.from(files).filter(f => f.type.startsWith('image/'));
     if (images.length + allowed.length > 3) {
@@ -94,7 +167,6 @@ export default function SubmitComplaint() {
 
   const removeImage = (idx) => setImages(prev => prev.filter((_, i) => i !== idx));
 
-  // ── Submit ───────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!form.title.trim() || !form.description.trim()) {
       setError(lang === 'hi' ? 'शीर्षक और विवरण आवश्यक हैं।' : 'Title and description are required.');
@@ -105,17 +177,15 @@ export default function SubmitComplaint() {
       return;
     }
     if (!form.location.ward.trim()) {
-      setError(lang === 'hi' ? 'कृपया वार्ड चुनें। यह सार्वजनिक डेटा के लिए जरूरी है।' : 'Please select your Ward. This is required for public transparency data.');
+      setError(lang === 'hi' ? 'कृपया वार्ड चुनें।' : 'Please select your Ward.');
       return;
     }
-    setLoading(true);
-    setError('');
+    setLoading(true); setError('');
     try {
-      const payload = {
+      const res = await API.post('/complaints', {
         ...form,
         images: images.map(img => ({ data: img.data, name: img.name, type: img.type })),
-      };
-      const res = await API.post('/complaints', payload);
+      });
       setSuccess(res.data.data);
     } catch (err) {
       setError(err.response?.data?.message || (lang === 'hi' ? 'शिकायत जमा नहीं हो सकी' : 'Failed to submit complaint'));
@@ -123,7 +193,7 @@ export default function SubmitComplaint() {
     setLoading(false);
   };
 
-  // ── Success Screen ───────────────────────────────────────────────────────
+  // ── Success Screen (Aparna's description + email in URL + Mayur's layout) ──
   if (success) {
     return (
       <div style={styles.page}>
@@ -137,8 +207,7 @@ export default function SubmitComplaint() {
               {[
                 { k: tx('Complaint ID', lang),    v: success.complaintNumber || `CMP-${success._id?.slice(-8).toUpperCase()}` },
                 { k: tx('Title', lang),           v: success.title },
-                // ── GitHub addition: show description on success screen ──
-                { k: tx('Description', lang),     v: success.filers?.[0]?.description?.substring(0, 100) || form.description?.substring(0, 100) || 'N/A' },
+                { k: tx('Description', lang),     v: form.description?.substring(0, 100) || 'N/A', wrap: true },
                 { k: tx('Category', lang),        v: success.category },
                 { k: tx('Department', lang),      v: CATEGORY_MAP[success.category]?.dept || 'Other' },
                 { k: tx('Urgency', lang),         v: tx(success.urgency, lang) },
@@ -151,19 +220,20 @@ export default function SubmitComplaint() {
               ].map((r, i) => (
                 <div key={i} style={{
                   display: 'flex',
-                  flexDirection: r.k === tx('Description', lang) ? 'column' : 'row',
+                  flexDirection: r.wrap ? 'column' : 'row',
                   justifyContent: 'space-between',
-                  marginBottom: 12,
-                  paddingBottom: 12,
+                  marginBottom: 12, paddingBottom: 12,
                   borderBottom: '1px solid #E8EEF8',
                 }}>
                   <span style={styles.successKey}>{r.k}</span>
-                  <span style={{ ...styles.successVal, ...(r.highlight ? { color: '#1B7A3E', fontWeight: 700 } : {}), marginTop: r.k === tx('Description', lang) ? 8 : 0 }}>{r.v}</span>
+                  <span style={{ ...styles.successVal, ...(r.highlight ? { color: '#1B7A3E', fontWeight: 700 } : {}), marginTop: r.wrap ? 4 : 0 }}>
+                    {r.v}
+                  </span>
                 </div>
               ))}
             </div>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 24 }}>
-              {/* ── GitHub addition: include email in track URL ── */}
+              {/* Aparna's email in URL + Mayur's track button */}
               <button style={styles.btnPrimary} onClick={() => navigate(`/citizen/track?id=${success.complaintNumber}&email=${encodeURIComponent(form.citizen.email)}`)}>
                 {tx('🔍 Track Complaint', lang)}
               </button>
@@ -172,9 +242,7 @@ export default function SubmitComplaint() {
                 setForm({ title: '', description: '', category: 'Other', urgency: 'Low',
                   citizen: { name: user?.name || '', email: user?.email || '', phone: '' },
                   location: { address: '', ward: '' } });
-              }}>
-                {tx('➕ Submit Another', lang)}
-              </button>
+              }}>{tx('➕ Submit Another', lang)}</button>
             </div>
           </div>
         </div>
@@ -185,6 +253,14 @@ export default function SubmitComplaint() {
   // ── Main Form ────────────────────────────────────────────────────────────
   return (
     <div style={styles.page}>
+      <style>{`
+        @keyframes micpulse {
+          0%   { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); }
+          70%  { box-shadow: 0 0 0 8px rgba(220,38,38,0); }
+          100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+        }
+      `}</style>
+
       <Header navigate={navigate} lang={lang} />
       <div style={styles.container}>
         <div style={styles.pageHead}>
@@ -194,24 +270,31 @@ export default function SubmitComplaint() {
 
         <div style={styles.grid}>
           <div>
-            {/* Complaint Details */}
             <div style={styles.card}>
               <div style={styles.cardTitle}>{tx('📋 Complaint Details', lang)}</div>
               {error && <div style={styles.error}>{error}</div>}
 
+              {/* Title — with voice (Mayur) */}
               <div style={styles.formGroup}>
                 <label style={styles.label}>{tx('Complaint Title *', lang)}</label>
-                <input style={styles.input} placeholder={tx('Brief title of your complaint', lang)}
+                <VoiceInput
+                  lang={lang}
                   value={form.title}
-                  onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+                  onChange={(val) => setForm(f => ({ ...f, title: val }))}
+                  placeholder={tx('Brief title of your complaint', lang)}
+                />
               </div>
 
+              {/* Description — with voice (Mayur) */}
               <div style={styles.formGroup}>
                 <label style={styles.label}>{tx('Complaint Description *', lang)}</label>
-                <textarea style={{ ...styles.input, height: 120, resize: 'vertical' }}
-                  placeholder={tx('Describe your issue in detail — AI will auto-detect category and urgency...', lang)}
+                <VoiceInput
+                  lang={lang}
+                  multiline
                   value={form.description}
-                  onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+                  onChange={(val) => setForm(f => ({ ...f, description: val }))}
+                  placeholder={tx('Describe your issue in detail — AI will auto-detect category and urgency...', lang)}
+                />
               </div>
 
               {/* AI Result Box */}
@@ -221,16 +304,13 @@ export default function SubmitComplaint() {
                   <div style={{ fontSize: 13, color: '#6B7FA3' }}>{tx('Detecting category and urgency...', lang)}</div>
                 </div>
               )}
-
               {!aiLoading && aiResult && (
                 <div style={styles.aiBox}>
                   <div style={styles.aiTitle}>{tx('🧠 AI Auto-Classification', lang)}</div>
                   <div style={styles.aiGrid}>
                     <div style={styles.aiItem}>
                       <span style={styles.aiKey}>{tx('Category', lang)}</span>
-                      <span style={styles.aiVal}>
-                        {CATEGORY_MAP[aiResult.category]?.icon} {aiResult.category}
-                      </span>
+                      <span style={styles.aiVal}>{CATEGORY_MAP[aiResult.category]?.icon} {aiResult.category}</span>
                     </div>
                     <div style={styles.aiItem}>
                       <span style={styles.aiKey}>{tx('Department', lang)}</span>
@@ -245,46 +325,30 @@ export default function SubmitComplaint() {
                     </div>
                   </div>
                   {aiResult.reason && (
-                    <div style={{ marginTop: 10, fontSize: 12, color: '#6B7FA3', fontStyle: 'italic' }}>
-                      💬 {aiResult.reason}
-                    </div>
+                    <div style={{ marginTop: 10, fontSize: 12, color: '#6B7FA3', fontStyle: 'italic' }}>💬 {aiResult.reason}</div>
                   )}
                   <div style={{ marginTop: 10, fontSize: 11, color: '#9EB3CC' }}>
-                    {lang === 'hi'
-                      ? '✅ श्रेणी और जरूरी स्तर नीचे स्वतः भरे गए हैं। आप मैन्युअल रूप से बदल सकते हैं।'
-                      : '✅ Category and urgency auto-filled below. You can still adjust manually.'}
+                    {lang === 'hi' ? '✅ श्रेणी और जरूरी स्तर नीचे स्वतः भरे गए हैं।' : '✅ Category and urgency auto-filled below. You can still adjust manually.'}
                   </div>
                 </div>
               )}
 
               <div style={styles.formRow}>
                 <div style={styles.formGroup}>
-                  <label style={styles.label}>
-                    {aiResult ? tx('Category (AI detected ✨)', lang) : `${tx('Category', lang)} *`}
-                  </label>
+                  <label style={styles.label}>{aiResult ? tx('Category (AI detected ✨)', lang) : `${tx('Category', lang)} *`}</label>
                   <select style={{ ...styles.input, borderColor: aiResult ? '#16A34A' : '#D8E2F0' }}
-                    value={form.category}
-                    onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
-                    {ALL_CATEGORIES.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
+                    value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
+                    {ALL_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div style={styles.formGroup}>
-                  <label style={styles.label}>
-                    {aiResult ? tx('Urgency (AI detected ✨)', lang) : `${tx('Urgency', lang)} *`}
-                  </label>
+                  <label style={styles.label}>{aiResult ? tx('Urgency (AI detected ✨)', lang) : `${tx('Urgency', lang)} *`}</label>
                   <select style={{ ...styles.input, borderColor: aiResult ? '#16A34A' : '#D8E2F0' }}
-                    value={form.urgency}
-                    onChange={e => setForm(f => ({ ...f, urgency: e.target.value }))}>
-                    {['Low', 'Medium', 'High'].map(u => (
-                      <option key={u} value={u}>{tx(u, lang)}</option>
-                    ))}
+                    value={form.urgency} onChange={e => setForm(f => ({ ...f, urgency: e.target.value }))}>
+                    {['Low', 'Medium', 'High'].map(u => <option key={u} value={u}>{tx(u, lang)}</option>)}
                   </select>
                 </div>
               </div>
-
-              {/* Show matched department below dropdowns */}
               {form.category && CATEGORY_MAP[form.category] && (
                 <div style={{ background: '#EEF2FF', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#0F2557', marginTop: -8, marginBottom: 8 }}>
                   🏢 <strong>{tx('Department', lang)}:</strong> {CATEGORY_MAP[form.category].dept}
@@ -292,29 +356,22 @@ export default function SubmitComplaint() {
               )}
             </div>
 
-            {/* Image Evidence Upload */}
+            {/* Photo Evidence */}
             <div style={{ ...styles.card, marginTop: 16 }}>
               <div style={styles.cardTitle}>
                 {tx('📸 Photo Evidence', lang)}{' '}
-                <span style={{ fontSize: 12, color: '#6B7FA3', fontWeight: 400 }}>
-                  {tx('(Optional — max 3 images)', lang)}
-                </span>
+                <span style={{ fontSize: 12, color: '#6B7FA3', fontWeight: 400 }}>{tx('(Optional — max 3 images)', lang)}</span>
               </div>
-              <div
-                style={{ ...styles.dropZone, ...(dragOver ? styles.dropZoneActive : {}) }}
+              <div style={{ ...styles.dropZone, ...(dragOver ? styles.dropZoneActive : {}) }}
                 onDragOver={e => { e.preventDefault(); setDragOver(true); }}
                 onDragLeave={() => setDragOver(false)}
                 onDrop={e => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
                 onClick={() => images.length < 3 && fileInputRef.current.click()}>
-                <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
-                  onChange={e => handleFiles(e.target.files)} />
+                <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => handleFiles(e.target.files)} />
                 <div style={{ fontSize: 40, marginBottom: 10 }}>📷</div>
-                <div style={styles.dropText}>
-                  {dragOver ? tx('Drop images here!', lang) : tx('Click or drag & drop images here', lang)}
-                </div>
+                <div style={styles.dropText}>{dragOver ? tx('Drop images here!', lang) : tx('Click or drag & drop images here', lang)}</div>
                 <div style={styles.dropSub}>{tx('JPG, PNG, WEBP · Max 3 images · 5MB each', lang)}</div>
               </div>
-
               {images.length > 0 && (
                 <div style={styles.previewGrid}>
                   {images.map((img, i) => (
@@ -324,9 +381,7 @@ export default function SubmitComplaint() {
                         <span style={styles.previewName}>{img.name.slice(0, 20)}{img.name.length > 20 ? '...' : ''}</span>
                         <span style={styles.previewSize}>{(img.size / 1024).toFixed(0)} KB</span>
                       </div>
-                      <button style={styles.removeBtn} onClick={() => removeImage(i)}>
-                        {lang === 'hi' ? '✕ हटाएं' : '✕ Remove'}
-                      </button>
+                      <button style={styles.removeBtn} onClick={() => removeImage(i)}>{lang === 'hi' ? '✕ हटाएं' : '✕ Remove'}</button>
                     </div>
                   ))}
                   {images.length < 3 && (
@@ -346,41 +401,31 @@ export default function SubmitComplaint() {
               )}
             </div>
 
-            {/* Location */}
+            {/* Location — Address with voice (Mayur) */}
             <div style={{ ...styles.card, marginTop: 16 }}>
               <div style={styles.cardTitle}>{tx('📍 Location Details', lang)}</div>
               <div style={styles.formRow}>
                 <div style={styles.formGroup}>
                   <label style={styles.label}>{tx('Address', lang)}</label>
-                  <input style={styles.input} placeholder={tx('Street, area or landmark', lang)}
+                  <VoiceInput
+                    lang={lang}
                     value={form.location.address}
-                    onChange={e => setForm(f => ({ ...f, location: { ...f.location, address: e.target.value } }))} />
+                    onChange={(val) => setForm(f => ({ ...f, location: { ...f.location, address: val } }))}
+                    placeholder={tx('Street, area or landmark', lang)}
+                  />
                 </div>
                 <div style={styles.formGroup}>
                   <label style={styles.label}>
-                    {tx('Ward', lang)} *{' '}
-                    <span style={{ fontSize: 11, color: '#E8620A', fontWeight: 400 }}>
-                      ({lang === 'hi' ? 'अनिवार्य' : 'required'})
-                    </span>
+                    {tx('Ward', lang)} * <span style={{ fontSize: 11, color: '#E8620A', fontWeight: 400 }}>({lang === 'hi' ? 'अनिवार्य' : 'required'})</span>
                   </label>
-                  <select
-                    style={{
-                      ...styles.input,
-                      borderColor: form.location.ward ? '#16A34A' : '#E8620A',
-                      color: form.location.ward ? '#0F2557' : '#9EB3CC',
-                    }}
-                    value={form.location.ward}
-                    onChange={e => setForm(f => ({ ...f, location: { ...f.location, ward: e.target.value } }))}>
+                  <select style={{ ...styles.input, borderColor: form.location.ward ? '#16A34A' : '#E8620A', color: form.location.ward ? '#0F2557' : '#9EB3CC' }}
+                    value={form.location.ward} onChange={e => setForm(f => ({ ...f, location: { ...f.location, ward: e.target.value } }))}>
                     <option value="">{lang === 'hi' ? '-- वार्ड चुनें --' : '-- Select Ward --'}</option>
-                    {WARDS.map(w => (
-                      <option key={w} value={`Ward ${w}`}>Ward {w}</option>
-                    ))}
+                    {WARDS.map(w => <option key={w} value={`Ward ${w}`}>Ward {w}</option>)}
                   </select>
                   {!form.location.ward && (
                     <div style={{ fontSize: 11, color: '#E8620A', marginTop: 4 }}>
-                      {lang === 'hi'
-                        ? '📍 वार्ड चुनें — सार्वजनिक डैशबोर्ड पर डेटा दिखाने के लिए जरूरी है'
-                        : '📍 Required for Ward-wise data on Public Dashboard'}
+                      {lang === 'hi' ? '📍 वार्ड चुनें — सार्वजनिक डैशबोर्ड के लिए जरूरी' : '📍 Required for Ward-wise data on Public Dashboard'}
                     </div>
                   )}
                 </div>
@@ -394,43 +439,27 @@ export default function SubmitComplaint() {
                 <div style={styles.formGroup}>
                   <label style={styles.label}>{tx('Full Name *', lang)}</label>
                   <input style={styles.input} placeholder={tx('Your full name', lang)}
-                    value={form.citizen.name}
-                    onChange={e => setForm(f => ({ ...f, citizen: { ...f.citizen, name: e.target.value } }))} />
+                    value={form.citizen.name} onChange={e => setForm(f => ({ ...f, citizen: { ...f.citizen, name: e.target.value } }))} />
                 </div>
                 <div style={styles.formGroup}>
                   <label style={styles.label}>{tx('Email *', lang)}</label>
                   <input style={styles.input} type="email" placeholder={tx('Your email', lang)}
-                    value={form.citizen.email}
-                    onChange={e => setForm(f => ({ ...f, citizen: { ...f.citizen, email: e.target.value } }))} />
+                    value={form.citizen.email} onChange={e => setForm(f => ({ ...f, citizen: { ...f.citizen, email: e.target.value } }))} />
                 </div>
               </div>
               <div style={styles.formGroup}>
                 <label style={styles.label}>{tx('Phone Number', lang)}</label>
-                {/* ── Local version: digit-only, max 10 chars ── */}
-                <input
-                  style={styles.input}
-                  placeholder={tx('10-digit mobile number', lang)}
-                  type="tel"
-                  maxLength={10}
+                <input style={styles.input} placeholder={tx('10-digit mobile number', lang)} type="tel" maxLength={10}
                   value={form.citizen.phone}
-                  onChange={e => {
-                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                    setForm(f => ({ ...f, citizen: { ...f.citizen, phone: val } }));
-                  }}
-                />
+                  onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, 10); setForm(f => ({ ...f, citizen: { ...f.citizen, phone: val } })); }} />
               </div>
             </div>
 
-            <button
-              style={{ ...styles.btnPrimary, width: '100%', padding: 14, fontSize: 16, marginTop: 16 }}
+            <button style={{ ...styles.btnPrimary, width: '100%', padding: 14, fontSize: 16, marginTop: 16 }}
               onClick={handleSubmit} disabled={loading || aiLoading}>
-              {loading
-                ? tx('⏳ Submitting...', lang)
-                : images.length > 0
-                  ? (lang === 'hi'
-                      ? `✅ ${images.length} फ़ोटो के साथ शिकायत जमा करें`
-                      : `✅ Submit Complaint with ${images.length} Photo${images.length > 1 ? 's' : ''}`)
-                  : tx('✅ Submit Complaint', lang)}
+              {loading ? tx('⏳ Submitting...', lang) : images.length > 0
+                ? (lang === 'hi' ? `✅ ${images.length} फ़ोटो के साथ शिकायत जमा करें` : `✅ Submit Complaint with ${images.length} Photo${images.length > 1 ? 's' : ''}`)
+                : tx('✅ Submit Complaint', lang)}
             </button>
           </div>
 
@@ -450,15 +479,13 @@ export default function SubmitComplaint() {
                   </div>
                 </div>
               ))}
-              <div style={{ fontSize: 11, color: '#9EB3CC', marginTop: 8 }}>
-                + {Object.keys(CATEGORY_MAP).length - 8} more departments
-              </div>
+              <div style={{ fontSize: 11, color: '#9EB3CC', marginTop: 8 }}>+ {Object.keys(CATEGORY_MAP).length - 8} more departments</div>
             </div>
 
             <div style={{ ...styles.card, marginTop: 16 }}>
               <div style={styles.cardTitle}>{tx('ℹ️ How It Works', lang)}</div>
               {[
-                { step: '01', title: 'Describe Your Issue',  desc: 'Type your complaint title and description' },
+                { step: '01', title: 'Describe Your Issue',  desc: 'Type or speak your complaint' },
                 { step: '02', title: 'AI Auto-Classifies',   desc: 'Category & urgency detected instantly' },
                 { step: '03', title: 'Add Photo Evidence',   desc: 'Attach photos for faster resolution' },
                 { step: '04', title: 'Track & Get Feedback', desc: 'Monitor status and rate the resolution' },
@@ -483,9 +510,7 @@ export default function SubmitComplaint() {
                 { u: 'Low',    t: '7 days',   c: '#4ADE80' },
               ].map((s, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>
-                    {tx(s.u, lang)} {tx('Urgency', lang)}
-                  </span>
+                  <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>{tx(s.u, lang)} {tx('Urgency', lang)}</span>
                   <span style={{ fontSize: 13, fontWeight: 700, color: s.c }}>{s.t}</span>
                 </div>
               ))}
@@ -509,21 +534,15 @@ function Header({ navigate, lang }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }} onClick={() => navigate('/')}>
           <div style={{ width: 40, height: 40, borderRadius: 9, background: 'linear-gradient(135deg,#0F2557,#1565C0)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🏛️</div>
           <div>
-            <div style={{ fontFamily: "'Noto Serif', serif", fontSize: 16, fontWeight: 700, color: '#0F2557' }}>
-              {tx('PS-CRM Gov Portal', lang)}
-            </div>
+            <div style={{ fontFamily: "'Noto Serif', serif", fontSize: 16, fontWeight: 700, color: '#0F2557' }}>{tx('PS-CRM Gov Portal', lang)}</div>
             <div style={{ fontSize: 11, color: '#6B7FA3' }}>{tx('Smart Public Service CRM', lang)}</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 9 }}>
           <button style={{ padding: '7px 16px', borderRadius: 8, border: '1.5px solid #0F2557', color: '#0F2557', background: 'transparent', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-            onClick={() => navigate('/citizen/track')}>
-            {tx('🔍 Track Complaint', lang)}
-          </button>
+            onClick={() => navigate('/citizen/track')}>{tx('🔍 Track Complaint', lang)}</button>
           <button style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: '#E8620A', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
-            onClick={() => navigate('/login')}>
-            {tx('Login', lang)} →
-          </button>
+            onClick={() => navigate('/login')}>{tx('Login', lang)} →</button>
         </div>
       </header>
     </>
