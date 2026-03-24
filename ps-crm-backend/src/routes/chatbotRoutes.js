@@ -1,8 +1,9 @@
+// ps-crm-backend/src/routes/chatbotRoutes.js
 const express = require('express');
-const router = express.Router();
-const { chatWithBot } = require('../controllers/chatbotController');
-const { protect } = require('../middleware/authMiddleware');
+const router  = express.Router();
+const { chat, resetChat } = require('../controllers/chatbotController');
 
-router.post('/chat', chatWithBot);
+router.post('/message', chat);
+router.post('/reset',   resetChat);
 
 module.exports = router;
