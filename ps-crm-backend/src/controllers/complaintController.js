@@ -42,6 +42,25 @@ const VALID_CATEGORIES = [
   'Encroachment', 'Signage', 'Other',
 ];
 
+const CATEGORY_BY_DEPARTMENT = {
+  'Sanitation & Solid Waste Management': 'Sanitation',
+  'Roads & Infrastructure': 'Roads',
+  'Water Supply & Drainage': 'Water',
+  'Street Lighting': 'Electricity',
+  'Health Services': 'Health',
+  'Education (MCD Schools)': 'Education',
+  'Building & Planning': 'Infrastructure',
+  'Parks & Horticulture': 'Environment',
+  'Property Tax': 'Finance',
+  'Birth & Death Registration': 'Administration',
+  'Food Safety & Slaughterhouse': 'Food Safety',
+  'Fire Services': 'Safety',
+  'Veterinary Services': 'Animal Welfare',
+  'Encroachment Removal': 'Encroachment',
+  'Advertisement & Signage': 'Signage',
+  'Other': 'Other',
+};
+
 const VALID_URGENCIES = ['High', 'Medium', 'Low'];
 
 const CLASSIFICATION_PROMPT = (title, description) => `You are an expert AI classifier for a Delhi Municipal Corporation (MCD) public grievance portal in India.
@@ -443,10 +462,11 @@ const parseAIResponse = (raw) => {
     parsed = JSON.parse(cleaned);
   } catch (e) {
     // ✅ IMPROVED: Handle malformed JSON with more robust regex patterns
-    const catMatch  = cleaned.match(/"?category"?\s*:\s*"([^"]+)"/i) || cleaned.match(/'category'\s*:\s*'([^']+)'/i);
-    const urgMatch  = cleaned.match(/"?urgency"?\s*:\s*"([^"]+)"/i) || cleaned.match(/'urgency'\s*:\s*'([^']+)'/i);
-    const deptMatch = cleaned.match(/"?department"?\s*:\s*"([^"]+)"/i) || cleaned.match(/'department'\s*:\s*'([^']+)'/i);
-    const resMatch  = cleaned.match(/"?reason"?\s*:\s*"([^"]+)"/i) || cleaned.match(/'reason'\s*:\s*'([^']+)'/i);
+    // Use a pattern that captures everything inside quotes, including special chars like &
+    const catMatch  = cleaned.match(/"category"\s*:\s*"([^"]+)"/i);
+    const urgMatch  = cleaned.match(/"urgency"\s*:\s*"([^"]+)"/i);
+    const deptMatch = cleaned.match(/"department"\s*:\s*"([^"]+)"/i);
+    const resMatch  = cleaned.match(/"reason"\s*:\s*"([^"]+)"/i);
     
     parsed = {
       category:   catMatch?.[1]?.trim() || 'Other',
@@ -458,18 +478,48 @@ const parseAIResponse = (raw) => {
     console.log('[parseAIResponse] Recovered from malformed JSON:', parsed);
   }
   
-  const finalCategory   = VALID_CATEGORIES.includes(parsed.category)   ? parsed.category   : 'Other';
-  const finalUrgency    = VALID_URGENCIES.includes(parsed.urgency)      ? parsed.urgency    : 'Low';
-  const finalDepartment = VALID_DEPARTMENTS.includes(parsed.department) ? parsed.department : 'Other';
-  
+  let finalCategory   = VALID_CATEGORIES.includes(parsed.category)   ? parsed.category   : null;
+  let finalUrgency    = VALID_URGENCIES.includes(parsed.urgency)      ? parsed.urgency    : null;
+  let finalDepartment = VALID_DEPARTMENTS.includes(parsed.department) ? parsed.department : null;
+
+  if (!finalCategory && finalDepartment && CATEGORY_BY_DEPARTMENT[finalDepartment]) {
+    finalCategory = CATEGORY_BY_DEPARTMENT[finalDepartment];
+  }
+
+  if (!finalCategory && parsed.department && CATEGORY_BY_DEPARTMENT[parsed.department]) {
+    finalCategory = CATEGORY_BY_DEPARTMENT[parsed.department];
+  }
+
+  if (!finalCategory && parsed.category && typeof parsed.category === 'string') {
+    const normalizedCat = parsed.category.trim();
+    for (const category of VALID_CATEGORIES) {
+      if (category.toLowerCase() === normalizedCat.toLowerCase()) {
+        finalCategory = category;
+        break;
+      }
+    }
+  }
+
+  if (!finalDepartment && finalCategory) {
+    finalDepartment = Object.keys(CATEGORY_BY_DEPARTMENT).find(dep => CATEGORY_BY_DEPARTMENT[dep] === finalCategory);
+  }
+
+  finalCategory   = finalCategory || 'Other';
+  finalUrgency    = finalUrgency  || 'Low';
+  finalDepartment = finalDepartment || 'Other';
+
   // ✅ DEBUG: Log if fallback to 'Other' happened
-  if (finalCategory === 'Other' && parsed.category !== 'Other') {
+  if (finalCategory === 'Other' && parsed.category && parsed.category !== 'Other') {
     console.log(`[parseAIResponse] Invalid category "${parsed.category}" — using "Other"`);
   }
-  
-  return { category: finalCategory, urgency: finalUrgency, department: finalDepartment, reason: parsed.reason || 'AI classified' };
-};
 
+  return {
+    category: finalCategory,
+    urgency: finalUrgency,
+    department: finalDepartment,
+    reason: parsed.reason || 'AI classified',
+  };
+};
 // ─── POST /api/complaints/classify ───────────────────────────────────────────
 
 const classifyComplaint = async (req, res) => {
