@@ -269,6 +269,7 @@ export default function Register() {
               onChange={e => { setTermsAccepted(e.target.checked); setError(''); }}
             />
             <label htmlFor="terms" style={{ fontSize: 13, color: '#6B7FA3', margin: 0, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+
               {lang === 'hi' ? 'मैं ' : 'I agree to the '}
               <span style={{ color: '#0F2557', fontWeight: 600 }}>{tx('Terms of Service', lang)}</span>
               {lang === 'hi' ? ' और ' : ' and '}
@@ -292,7 +293,9 @@ export default function Register() {
             </span>
           </div>
 
-
+          <button style={styles.btnGuest} onClick={() => navigate('/public')}>
+            {tx('Continue as Guest (View Public Dashboard)', lang)}
+          </button>
         </div>
       </div>
     </div>
