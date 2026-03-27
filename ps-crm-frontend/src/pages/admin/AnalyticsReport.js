@@ -182,10 +182,11 @@ ${stats?.dailyTrend.map(d => `${d._id} : ${d.count} complaints`).join('\n')}
                 { icon: '✅', label: 'Resolution Rate',  value: `${resolutionRate}%`,       sub: `${stats.overview.resolved} resolved`, color: '#16A34A', bg: '#DCFCE7' },
                 { icon: '⏳', label: 'Pending',          value: stats.overview.pending,     sub: 'Awaiting action', color: '#D97706', bg: '#FEF3C7' },
                 { icon: '🔄', label: 'In Progress',      value: stats.overview.inProgress,  sub: 'Being resolved',  color: '#2563EB', bg: '#DBEAFE' },
-                { icon: '⚡', label: 'Avg Resolution',   value: '2.4d',                     sub: 'Average days',    color: '#8B5CF6', bg: '#F3E8FF' },
+                { icon: '⚡', label: 'Avg Resolution',   value: stats.avgResponse != null ? `${(stats.avgResponse / 24).toFixed(1)}d` : 'N/A', sub: 'Average days',    color: '#8B5CF6', bg: '#F3E8FF' },
+                { icon: '📈', label: 'Monthly Growth',  value: stats.monthlyGrowth != null ? `${stats.monthlyGrowth >= 0 ? '+' : ''}${stats.monthlyGrowth}%` : 'N/A', sub: '30-day trend', color: '#1B7A3E', bg: '#DCFCE7' },
+                { icon: '⭐', label: 'Citizen Satisfaction', value: stats.citizenSatisfaction != null ? `${stats.citizenSatisfaction}/5` : 'N/A', sub: 'Average Rating', color: '#F59E0B', bg: '#FEF3C7' },
                 { icon: '🚨', label: 'Escalated',
-                  value: stats.overview.total - stats.overview.pending - stats.overview.inProgress - stats.overview.resolved,
-                  sub: 'SLA breached', color: '#DC2626', bg: '#FEE2E2' },
+                  value: `${stats.escalatedRate || 0}%`, sub: 'SLA breached', color: '#DC2626', bg: '#FEE2E2' },
               ].map((k, i) => (
                 <div key={i} style={styles.kpiCard}>
                   <div style={{ ...styles.kpiIcon, background: k.bg }}>{k.icon}</div>

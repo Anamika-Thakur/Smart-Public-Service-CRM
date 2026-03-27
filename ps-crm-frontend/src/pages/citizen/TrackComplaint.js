@@ -7,7 +7,7 @@ export default function TrackComplaint() {
   const navigate = useNavigate();
   const { lang } = useLang();
   const [complaintId, setComplaintId] = useState('');
-  const [email, setEmail] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [complaint, setComplaint] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -16,28 +16,23 @@ export default function TrackComplaint() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     let id = params.get('id');
-    const filerEmail = params.get('email') || '';
     if (id) {
       id = id.toUpperCase();
       if (!id.startsWith('CMP-')) id = `CMP-${id}`;
       setComplaintId(id);
-      setEmail(filerEmail);
-      if (filerEmail) {
-        setLoading(true);
-        API.get(`/complaints/track/${id}`, { params: { email: filerEmail } })
-          .then(res => { setComplaint(res.data.data); setLoading(false); })
-          .catch(() => { setError('Complaint not found.'); setLoading(false); });
-      }
+      setLoading(true);
+      API.get(`/complaints/track/${id}`)
+        .then(res => { setComplaint(res.data.data); setLoading(false); })
+        .catch(() => { setError('Complaint not found.'); setLoading(false); });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTrack = async () => {
     let input = complaintId.trim().toUpperCase();
-    const normalizedEmail = email.trim().toLowerCase();
-    if (!input || !normalizedEmail) {
+    if (!input) {
       setError(lang === 'hi'
-        ? 'कृपया शिकायत आईडी और ईमेल दोनों दर्ज करें।'
-        : 'Please enter both complaint ID and filer email.');
+        ? 'कृपया शिकायत आईडी दर्ज करें।'
+        : 'Please enter a complaint ID.');
       return;
     }
     // Auto-prefix CMP- if user typed just the number part
@@ -46,19 +41,81 @@ export default function TrackComplaint() {
     setError('');
     setComplaint(null);
     try {
-      const res = await API.get(`/complaints/track/${input}`, {
-        params: { email: normalizedEmail },
-      });
+      const res = await API.get(`/complaints/track/${input}`);
       setComplaint(res.data.data);
     } catch (err) {
       setError(lang === 'hi'
-        ? 'शिकायत नहीं मिली। कृपया शिकायत आईडी और फाइलर ईमेल जांचें।'
-        : 'Complaint not found. Please check the complaint ID and filer email.');
+        ? 'शिकायत नहीं मिली। कृपया शिकायत आईडी जांचें।'
+        : 'Complaint not found. Please check the complaint ID.');
     }
     setLoading(false);
   };
 
   const handlePrint = () => window.print();
+
+  const handleEmail = async () => {
+    if (!complaint) return;
+    const subject = `${lang === 'hi' ? 'शिकायत प्रगति रिपोर्ट' : 'Complaint Progress Report'} - ${displayComplaintId(complaint)}`;
+    const body = `
+${lang === 'hi' ? 'शिकायत प्रगति रिपोर्ट' : 'Complaint Progress Report'}
+
+${lang === 'hi' ? 'शिकायत आईडी' : 'Complaint ID'}: ${displayComplaintId(complaint)}
+${lang === 'hi' ? 'शीर्षक' : 'Title'}: ${complaint.title}
+${lang === 'hi' ? 'स्थिति' : 'Status'}: ${tx(complaint.status, lang)}
+${lang === 'hi' ? 'श्रेणी' : 'Category'}: ${tx(complaint.category, lang)}
+${lang === 'hi' ? 'प्राथमिकता' : 'Priority'}: ${tx(complaint.urgency, lang)}
+
+${lang === 'hi' ? 'विवरण' : 'Description'}:
+${complaint.description || ''}
+
+${lang === 'hi' ? 'इसे देखने के लिए यहां क्लिक करें' : 'Click here to view'}: ${window.location.origin}/citizen/track?id=${complaint._id || displayComplaintId(complaint)}
+    `.trim();
+    
+    const emailLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = emailLink;
+  };
+
+  const handleEmailDuplicate = async () => {
+    if (!complaint) return;
+    const subject = `${lang === 'hi' ? 'डुप्लिकेट शिकायत जांच' : 'Duplicate Complaint Check'} - ${displayComplaintId(complaint)}`;
+    const body = lang === 'hi'
+      ? `कृपया निम्नलिखित शिकायत आईडी की डुप्लिकेट जांच करें:\n\nशिकायत आईडी: ${displayComplaintId(complaint)}`
+      : `Please check the following complaint ID for duplicates:\n\nComplaint ID: ${displayComplaintId(complaint)}`;
+    
+    const emailLink = `mailto:grievance@pscrm.gov.in?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = emailLink;
+  };
+
+  const handleSendToEmail = async () => {
+    if (!userEmail || !complaint) {
+      setError(lang === 'hi' ? 'कृपया ईमेल दर्ज करें।' : 'Please enter an email address.');
+      return;
+    }
+    
+    try {
+      const subject = `${lang === 'hi' ? 'शिकायत प्रगति रिपोर्ट' : 'Complaint Progress Report'} - ${displayComplaintId(complaint)}`;
+      const body = `
+${lang === 'hi' ? 'शिकायत प्रगति रिपोर्ट' : 'Complaint Progress Report'}
+
+${lang === 'hi' ? 'शिकायत आईडी' : 'Complaint ID'}: ${displayComplaintId(complaint)}
+${lang === 'hi' ? 'शीर्षक' : 'Title'}: ${complaint.title}
+${lang === 'hi' ? 'स्थिति' : 'Status'}: ${tx(complaint.status, lang)}
+${lang === 'hi' ? 'श्रेणी' : 'Category'}: ${tx(complaint.category, lang)}
+${lang === 'hi' ? 'प्राथमिकता' : 'Priority'}: ${tx(complaint.urgency, lang)}
+
+${lang === 'hi' ? 'विवरण' : 'Description'}:
+${complaint.description || ''}
+
+${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
+      `.trim();
+      
+      const emailLink = `mailto:${userEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = emailLink;
+      setError('');
+    } catch (err) {
+      setError(lang === 'hi' ? 'ईमेल भेजने में त्रुटि हुई।' : 'Error sending email.');
+    }
+  };
 
   const statusSteps = ['Pending', 'In Progress', 'Resolved'];
   const currentStep = complaint ? statusSteps.indexOf(complaint.status) : -1;
@@ -154,7 +211,7 @@ export default function TrackComplaint() {
       {/* Top Bar */}
       <div style={{ background: '#0F2557', height: 34, display: 'flex', alignItems: 'center', padding: '0 40px', borderBottom: '3px solid #E8620A' }}>
         <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>
-          {tx('Government of India · Ministry of Personnel, Public Grievances & Pensions', lang)}
+          {tx('Government of Delhi · Ministry of Personnel, Public Grievances & Pensions', lang)}
         </span>
       </div>
 
@@ -173,14 +230,18 @@ export default function TrackComplaint() {
           <button style={styles.btnOutline} onClick={() => navigate('/citizen/submit')}>
             {tx('📝 File a Complaint', lang)}
           </button>
-          <button style={styles.btnOrange} onClick={() => navigate('/login')}>
-            {tx('Login', lang)} →
-          </button>
         </div>
       </header>
 
       <div style={styles.container}>
         <div style={styles.pageHead}>
+          <button 
+            style={styles.backBtn} 
+            onClick={() => navigate('/citizen')}
+            className="no-print"
+          >
+            ← {tx('Back', lang)}
+          </button>
           <h1 style={styles.pageTitle}>{tx('🔍 Track Your Complaint', lang)}</h1>
           <p style={styles.pageSub}>{tx('Enter your complaint ID to see real-time status, photos, and progress report', lang)}</p>
         </div>
@@ -198,25 +259,30 @@ export default function TrackComplaint() {
                 onKeyDown={e => e.key === 'Enter' && handleTrack()}
               />
             </div>
-            <div style={{ flex: 1 }}>
-              <label style={styles.label}>{lang === 'hi' ? 'फाइलर ईमेल' : 'Filer Email'}</label>
+            <div style={{ flex: 1, marginLeft: 12 }}>
+              <label style={styles.label}>{tx('Email', lang)}</label>
               <input
                 style={styles.input}
+                placeholder={lang === 'hi' ? 'आपका ईमेल' : 'Your email'}
                 type="email"
-                placeholder={lang === 'hi' ? 'शिकायत दर्ज करने वाला ईमेल' : 'Email used while filing the complaint'}
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleTrack()}
+                value={userEmail}
+                onChange={e => setUserEmail(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && complaint && handleSendToEmail()}
               />
             </div>
             <button style={styles.btnTrack} onClick={handleTrack} disabled={loading}>
               {loading ? tx('⏳ Searching...', lang) : tx('🔍 Track', lang)}
             </button>
           </div>
+          {complaint && userEmail && (
+            <button style={{ ...styles.btnOrange, width: '100%', marginTop: 12, padding: '10px 0' }} onClick={handleSendToEmail}>
+              {tx('📧 Send to Email', lang)}
+            </button>
+          )}
           <div style={{ fontSize: 12, color: '#9BADC0', marginTop: 10 }}>
             💡 {lang === 'hi'
-              ? 'डुप्लीकेट शिकायतों को सही उपयोगकर्ता से जोड़ने के लिए शिकायत आईडी के साथ वही ईमेल दर्ज करें जिससे शिकायत की गई थी'
-              : 'To identify the correct filer for grouped duplicate complaints, enter the same email used while filing along with the complaint ID'}
+              ? 'शिकायत आईडी के आधार पर केवल आपकी शिकायत ट्रैक की जाएगी।'
+              : 'Complaint tracking is now based solely on the complaint ID.'}
           </div>
           {error && <div style={styles.error}>{error}</div>}
         </div>
@@ -236,9 +302,17 @@ export default function TrackComplaint() {
                 {lang === 'hi' ? 'परिणाम दिखाया जा रहा है' : 'Showing results for'}{' '}
                 <strong style={{ color: '#0F2557' }}>{displayComplaintId(complaint)}</strong>
               </div>
-              <button style={styles.btnPrint} onClick={handlePrint}>
-                {tx('🖨️ Print / Save Report', lang)}
-              </button>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button style={styles.btnPrint} onClick={handleEmailDuplicate}>
+                  {tx('📧 Report Duplicate', lang)}
+                </button>
+                <button style={styles.btnPrint} onClick={handleEmail}>
+                  {tx('📧 Email Report', lang)}
+                </button>
+                <button style={styles.btnPrint} onClick={handlePrint}>
+                  {tx('🖨️ Print / Save Report', lang)}
+                </button>
+              </div>
             </div>
 
             <div style={styles.resultGrid}>
@@ -490,6 +564,7 @@ const styles = {
   header: { background: '#fff', borderBottom: '1px solid #D8E2F0', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', boxShadow: '0 2px 12px rgba(15,37,87,0.08)' },
   container: { maxWidth: 1100, margin: '0 auto', padding: '40px' },
   pageHead: { marginBottom: 28 },
+  backBtn: { padding: '8px 16px', borderRadius: 8, border: '1.5px solid #D8E2F0', background: '#fff', color: '#0F2557', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginBottom: 16, display: 'inline-flex', alignItems: 'center', gap: 6 },
   pageTitle: { fontFamily: "'Noto Serif',serif", fontSize: 26, fontWeight: 700, color: '#0F2557', marginBottom: 6 },
   pageSub: { color: '#6B7FA3', fontSize: 14 },
   searchCard: { background: '#fff', borderRadius: 12, padding: 28, boxShadow: '0 2px 12px rgba(15,37,87,0.06)', marginBottom: 28 },

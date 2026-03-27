@@ -29,7 +29,7 @@ export default function Login() {
         setStats({
           resolved:       d.resolved,
           resolutionRate: rate,
-          avgResponse:    0,
+          avgResponse:    d.avgResponse || 0,
         });
       })
       .catch(() => {}); // fail silently
@@ -101,7 +101,7 @@ export default function Login() {
       l: tx('Resolution Rate', lang),
     },
     {
-      n: '<48h',
+      n: stats.avgResponse > 0 ? `${stats.avgResponse}h` : '—',
       l: tx('Average Response', lang),
     },
   ];

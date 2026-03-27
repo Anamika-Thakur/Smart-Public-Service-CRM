@@ -243,7 +243,7 @@ function Header({ navigate, lang }) {
     <>
       <div style={{ background: '#0F2557', height: 34, display: 'flex', alignItems: 'center', padding: '0 40px', borderBottom: '3px solid #E8620A' }}>
         <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>
-          {tx('Government of India · Ministry of Personnel, Public Grievances & Pensions', lang)}
+          {tx('Government of Delhi · Ministry of Personnel, Public Grievances & Pensions', lang)}
         </span>
       </div>
       <header style={{ background: '#fff', borderBottom: '1px solid #D8E2F0', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', boxShadow: '0 2px 12px rgba(15,37,87,0.08)' }}>

@@ -10,7 +10,7 @@ async function addAdmin() {
     console.log('Connected to MongoDB');
 
     // Check if admin already exists
-    const existingAdmin = await User.findOne({ email: 'omkarshingote12345@gmail.com' });
+    const existingAdmin = await User.findOne({ email: 'gov.grievance.system@gmail.com' });
     if (existingAdmin) {
       console.log('Admin user already exists!');
       mongoose.disconnect();
@@ -23,8 +23,8 @@ async function addAdmin() {
 
     // Create new admin user
     const admin = new User({
-      name: 'Admin User',
-      email: 'omkarshingote12345@gmail.com',
+      name: 'Government Grievance System Admin',
+      email: 'gov.grievance.system@gmail.com',
       password: hashedPassword,
       role: 'admin',
       status: 'active'
@@ -33,7 +33,7 @@ async function addAdmin() {
     // Save the admin user
     await admin.save();
     console.log('Admin user created successfully!');
-    console.log(`Email: omkarshingote12345@gmail.com`);
+    console.log(`Email: gov.grievance.system@gmail.com`);
     console.log(`Password: pass123`);
     console.log(`Role: admin`);
 

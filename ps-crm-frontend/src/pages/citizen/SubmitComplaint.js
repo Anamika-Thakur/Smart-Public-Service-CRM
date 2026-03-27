@@ -823,7 +823,7 @@ function Header({ navigate, lang }) {
     <>
       <div style={{ background: '#0F2557', height: 34, display: 'flex', alignItems: 'center', padding: '0 40px', borderBottom: '3px solid #E8620A' }}>
         <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>
-          {tx('Government of India · Ministry of Personnel, Public Grievances & Pensions', lang)}
+          {tx('Government of Delhi · Ministry of Personnel, Public Grievances & Pensions', lang)}
         </span>
       </div>
       <header style={{ background: '#fff', borderBottom: '1px solid #D8E2F0', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', boxShadow: '0 2px 12px rgba(15,37,87,0.08)' }}>
@@ -836,9 +836,9 @@ function Header({ navigate, lang }) {
         </div>
         <div style={{ display: 'flex', gap: 9 }}>
           <button style={{ padding: '7px 16px', borderRadius: 8, border: '1.5px solid #0F2557', color: '#0F2557', background: 'transparent', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+            onClick={() => navigate(-1)}>{tx('← Back', lang)}</button>
+          <button style={{ padding: '7px 16px', borderRadius: 8, border: '1.5px solid #0F2557', color: '#0F2557', background: 'transparent', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
             onClick={() => navigate('/citizen/track')}>{tx('🔍 Track Complaint', lang)}</button>
-          <button style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: '#E8620A', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
-            onClick={() => navigate('/login')}>{tx('Login', lang)} →</button>
         </div>
       </header>
     </>

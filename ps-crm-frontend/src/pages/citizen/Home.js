@@ -49,6 +49,10 @@ export default function Home() {
     ? ((realStats.resolved / (realStats.total || 1)) * 100).toFixed(1)
     : null;
 
+  const avgResponse = realStats
+    ? (realStats.avgResponse !== undefined ? `${realStats.avgResponse}h` : '—')
+    : '...';
+
   const currentFaqs = faqs[lang] || faqs.en;
 
   const featureCards = [
@@ -97,7 +101,7 @@ export default function Home() {
             ))}
           </div>
           <span style={styles.topbarText}>
-            {T('Government of India · Ministry of Personnel, Public Grievances & Pensions')}
+            {T('Government of Delhi · Ministry of Personnel, Public Grievances & Pensions')}
           </span>
         </div>
         <div style={{ display: 'flex', gap: 18, alignItems: 'center' }}>
@@ -180,6 +184,7 @@ export default function Home() {
                 { n: realStats ? `${resolutionRate}%` : '...', l: T('Resolution Rate') },
                 { n: realStats ? realStats.resolved.toLocaleString('en-IN') : '...', l: T('Resolved') },
                 { n: realStats ? realStats.pending.toLocaleString('en-IN') : '...', l: T('Pending') },
+                { n: realStats ? avgResponse : '...', l: T('Average Response') },
               ].map((s, i) => (
                 <div key={i} style={styles.hcItem}>
                   <div style={styles.hcNum}>{s.n}</div>
@@ -265,8 +270,8 @@ export default function Home() {
               </div>
               <div style={{ fontSize: 13, color: '#6B7FA3', lineHeight: 1.8 }}>
                 {lang === 'hi'
-                  ? 'प्रौद्योगिकी के माध्यम से नागरिकों और भारत सरकार के बीच विश्वास बनाना।'
-                  : 'Building trust between citizens and Government of India through technology.'
+                  ? 'प्रौद्योगिकी के बाधधम से नागरिकों और दिल्ली सरकार के बीच विश्वास बनाना।'
+                  : 'Building trust between citizens and Government of Delhi through technology.'
                 }
               </div>
             </div>
@@ -288,7 +293,7 @@ export default function Home() {
             </div>
           </div>
           <div style={styles.footerBottom}>
-            {T('© 2026 Government of India – Smart Public Service CRM. All rights reserved.')}
+            {T('© 2026 Government of Delhi – Smart Public Service CRM. All rights reserved.')}
           </div>
         </div>
       </footer>

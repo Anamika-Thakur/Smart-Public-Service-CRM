@@ -43,14 +43,33 @@ export default function PublicDashboard() {
   const { lang } = useLang();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [sortWard, setSortWard] = useState('count'); // 'count' | 'alpha'
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/dashboard/public')
-      .then(res => res.json())
-      .then(data => { if (data.success) setStats(data.data); setLoading(false); })
-      .catch(() => setLoading(false));
+    let intervalId;
+
+    const fetchStats = () => {
+      setLoading(true);
+      fetch('http://localhost:5000/api/dashboard/public')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setStats(data.data);
+            setLastUpdated(new Date());
+          }
+          setLoading(false);
+        })
+        .catch(() => {
+          setLoading(false);
+        });
+    };
+
+    fetchStats();
+    intervalId = setInterval(fetchStats, 30000); // refresh every 30 seconds
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const resolutionRate = stats ? ((stats.resolved / (stats.total || 1)) * 100).toFixed(1) : 0;
@@ -90,11 +109,11 @@ export default function PublicDashboard() {
             ))}
           </div>
           <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>
-            {tx('Government of India · Public Transparency Dashboard', lang)}
+            {tx('Government of Delhi · Public Transparency Dashboard', lang)}
           </span>
         </div>
         <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
-          {tx('Last updated', lang)}: {new Date().toLocaleString(lang === 'hi' ? 'hi-IN' : 'en-IN')}
+          {tx('Last updated', lang)}: {lastUpdated ? lastUpdated.toLocaleString(lang === 'hi' ? 'hi-IN' : 'en-IN') : tx('Loading...', lang)}
         </span>
       </div>
 
@@ -116,10 +135,10 @@ export default function PublicDashboard() {
           ))}
         </nav>
         <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
+          <button style={styles.btnOutline} onClick={() => window.history.back()}>{'<'} {tx('Back', lang)}</button>
           <LanguageToggle style={{ border: '1.5px solid #0F2557', background: 'rgba(15,37,87,0.08)', color: '#0F2557' }} />
           <button style={styles.btnOutline} onClick={() => navigate('/citizen/track')}>🔍 {tx('Track', lang)}</button>
           <button style={styles.btnOutline} onClick={() => navigate('/')}>🏠 {tx('Home', lang)}</button>
-          <button style={styles.btnPrimary} onClick={() => navigate('/login')}>{tx('Login', lang)} →</button>
         </div>
       </header>
 
@@ -253,12 +272,12 @@ export default function PublicDashboard() {
                   <h2 style={styles.accountTitle}>{tx('🏛️ Government Accountability Metrics', lang)}</h2>
                   <div style={styles.accountGrid}>
                     {[
-                      { icon: '⚡', label: tx('Avg Resolution Time', lang), value: '2.4 days', good: true },
+                      { icon: '⚡', label: tx('Avg Resolution Time', lang), value: stats.avgResponse != null ? `${((stats.avgResponse || 0) / 24).toFixed(1)} days` : 'N/A', good: (stats.avgResponse || 0) / 24 <= 3 },
                       { icon: '✅', label: tx('SLA Compliance', lang),       value: `${resolutionRate}%`, good: parseFloat(resolutionRate) > 80 },
                       { icon: '🔄', label: tx('Active Cases', lang),         value: stats.inProgress || 0, good: true },
-                      { icon: '📈', label: tx('Monthly Growth', lang),       value: '+12%', good: true },
-                      { icon: '⭐', label: tx('Citizen Satisfaction', lang), value: '4.2/5', good: true },
-                      { icon: '🚨', label: tx('Escalation Rate', lang),      value: '0%', good: false },
+                      { icon: '📈', label: tx('Monthly Growth', lang),       value: stats.monthlyGrowth != null ? `${stats.monthlyGrowth >= 0 ? '+' : ''}${stats.monthlyGrowth}%` : '0%', good: (stats.monthlyGrowth || 0) >= 0 },
+                      { icon: '⭐', label: tx('Citizen Satisfaction', lang), value: stats.citizenSatisfaction != null ? `${stats.citizenSatisfaction.toFixed(1)}/5` : 'N/A', good: (stats.citizenSatisfaction || 0) >= 3.5 },
+                      { icon: '🚨', label: tx('Escalation Rate', lang),      value: stats.escalatedRate != null ? `${stats.escalatedRate}%` : '0%', good: false },
                     ].map((m, i) => (
                       <div key={i} style={styles.metricCard}>
                         <div style={{ fontSize: 28, marginBottom: 8 }}>{m.icon}</div>
@@ -535,10 +554,7 @@ export default function PublicDashboard() {
               <div style={{ fontSize: 13, color: '#6B7FA3', lineHeight: 1.7, marginBottom: 14 }}>
                 {tx('Smart Public Service CRM for centralized citizen grievance management powered by AI.', lang)}
               </div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#DCFCE7', padding: '4px 12px', borderRadius: 20 }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#16A34A', display: 'inline-block' }} />
-                <span style={{ fontSize: 11, color: '#16A34A', fontWeight: 700 }}>{tx('Live Data · No Login Required', lang)}</span>
-              </div>
+
             </div>
             <div>
               <div style={{ fontWeight: 700, color: '#0F2557', marginBottom: 14 }}>{tx('Quick Links', lang)}</div>
@@ -564,14 +580,13 @@ export default function PublicDashboard() {
                 {tx('🔍 Track a Complaint Now', lang)}
               </button>
               <div style={{ fontSize: 13, color: '#6B7FA3', lineHeight: 1.8, marginTop: 16 }}>
-                📧 support@pscrm.gov.in<br />
-                📞 1800-XXX-XXXX ({lang === 'hi' ? 'टोल फ्री' : 'Toll Free'})<br />
-                🕐 {lang === 'hi' ? 'सोम–शनि, सुबह 9 – शाम 6 IST' : 'Mon–Sat, 9AM–6PM IST'}
+                📧 gov.grievance.system@gmail.com<br />
+                📞 9594231594
               </div>
             </div>
           </div>
           <div style={{ borderTop: '1px solid #D8E2F0', paddingTop: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-            <div style={{ fontSize: 12, color: '#6B7FA3' }}>{tx('© 2025 PS-CRM · Public Transparency Dashboard · Government of India', lang)}</div>
+            <div style={{ fontSize: 12, color: '#6B7FA3' }}>{tx('© 2025 PS-CRM · Public Transparency Dashboard · Government of Delhi', lang)}</div>
             <div style={{ fontSize: 12, color: '#6B7FA3' }}>{tx('Privacy Policy · Terms of Use · Accessibility', lang)}</div>
           </div>
         </div>

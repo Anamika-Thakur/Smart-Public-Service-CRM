@@ -307,22 +307,18 @@ const getComplaintByNumber = async (req, res) => {
     const complaintNumber = req.params.complaintNumber.toUpperCase();
     const email = (req.query.email || '').trim().toLowerCase();
 
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: 'Filer email is required to track a complaint.',
-      });
+    // Allow tracking by complaint number alone; include email if provided for filer specificity.
+    const query = { complaintNumber };
+    if (email) {
+      query['filers.citizen.email'] = email;
     }
 
-    const complaint = await Complaint.findOne({
-      complaintNumber,
-      'filers.citizen.email': email,
-    });
+    const complaint = await Complaint.findOne(query);
 
     if (!complaint) {
       return res.status(404).json({
         success: false,
-        message: 'Complaint not found for this complaint number and email.',
+        message: 'Complaint not found for this complaint number.',
       });
     }
 

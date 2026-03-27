@@ -38,7 +38,7 @@ const htmlWrapper = (title, accentColor, icon, bodyHtml) => `
           <td style="background:linear-gradient(135deg,#0F2557 0%,#1a3a7a 100%);padding:28px 32px;text-align:center;">
             <div style="font-size:28px;margin-bottom:8px;">${icon}</div>
             <h1 style="color:#fff;margin:0;font-size:20px;font-weight:700;letter-spacing:0.5px;">PS-CRM Gov Portal</h1>
-            <p style="color:rgba(255,255,255,0.7);margin:4px 0 0;font-size:12px;">Government of India · Smart Public Service CRM</p>
+            <p style="color:rgba(255,255,255,0.7);margin:4px 0 0;font-size:12px;">Government of Delhi · Smart Public Service CRM</p>
           </td>
         </tr>
         <tr>
@@ -54,7 +54,7 @@ const htmlWrapper = (title, accentColor, icon, bodyHtml) => `
         <tr>
           <td style="background:#f8f9fb;padding:20px 32px;border-top:1px solid #e8ecf0;text-align:center;">
             <p style="color:#888;font-size:12px;margin:0;">This is an automated message from PS-CRM System.</p>
-            <p style="color:#888;font-size:12px;margin:4px 0 0;">© 2026 Government of India · Smart Public Service CRM</p>
+            <p style="color:#888;font-size:12px;margin:4px 0 0;">© 2026 Government of Delhi · Smart Public Service CRM</p>
           </td>
         </tr>
       </table>
