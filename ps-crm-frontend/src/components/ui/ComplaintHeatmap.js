@@ -21,7 +21,7 @@ const URGENCY_CONFIG = {
 };
 
 const CAT_ICON = {
-  Roads: '🛣️', Water: '💧', Electricity: '⚡', Sanitation: '🗑️', Other: '📋',
+  Roads: '', Water: '', Electricity: '', Sanitation: '', Other: '',
 };
 
 function loadGoogleMaps(apiKey) {
@@ -225,7 +225,7 @@ export default function ComplaintHeatmap() {
           </div>
         </div>
         <div style="font-size:11px;color:#475569;border-top:1px solid #f1f5f9;padding-top:8px;display:flex;justify-content:space-between;">
-          <span>${CAT_ICON[ward.topCategory] || '📋'} ${ward.topCategory}</span>
+          <span>${CAT_ICON[ward.topCategory] || ''} ${ward.topCategory}</span>
           <span style="color:#16a34a;font-weight:600;">${ward.resolutionRate}% resolved</span>
         </div>
       </div>`;
@@ -267,7 +267,7 @@ export default function ComplaintHeatmap() {
               style={{ marginRight:'6px', accentColor:'#1a56db' }} />
             Show markers
           </label>
-          <button onClick={fetchData} style={S.refreshBtn}>↻ Refresh</button>
+          <button onClick={fetchData} style={S.refreshBtn}> Refresh</button>
         </div>
       </div>
 
@@ -302,14 +302,14 @@ export default function ComplaintHeatmap() {
           )}
           {error && (
             <div style={S.overlay}>
-              <div style={{ fontSize:'36px', marginBottom:'12px' }}>⚠️</div>
+              <div style={{ fontSize:'36px', marginBottom:'12px' }}></div>
               <p style={{ color:'#dc2626', fontSize:'13.5px', textAlign:'center', maxWidth:'300px', lineHeight:1.5 }}>{error}</p>
               <button onClick={fetchData} style={{ ...S.refreshBtn, marginTop:'14px' }}>Retry</button>
             </div>
           )}
           {!loading && !error && heatmapData?.wardDetails.length === 0 && (
             <div style={{ ...S.overlay, background:'rgba(248,250,252,0.88)' }}>
-              <div style={{ fontSize:'36px', marginBottom:'10px' }}>📍</div>
+              <div style={{ fontSize:'36px', marginBottom:'10px' }}></div>
               <p style={{ color:'#475569', fontSize:'13px', textAlign:'center', maxWidth:'280px', lineHeight:1.6 }}>
                 No complaints with location data found yet.<br/>
                 Complaints will appear here as they are filed.
@@ -345,10 +345,10 @@ export default function ComplaintHeatmap() {
             </select>
             <select value={filterUrgency} onChange={e => setFilterUrgency(e.target.value)} style={S.select}>
               <option value="All">All Urgency Levels</option>
-              <option value="Critical">🔴 Critical</option>
-              <option value="High">🟠 High</option>
-              <option value="Medium">🟡 Medium</option>
-              <option value="Low">🟢 Low</option>
+              <option value="Critical"> Critical</option>
+              <option value="High"> High</option>
+              <option value="Medium"> Medium</option>
+              <option value="Low"> Low</option>
             </select>
           </div>
 
@@ -376,9 +376,9 @@ export default function ComplaintHeatmap() {
                     <div>
                       <div style={{ fontWeight:700, fontSize:'13.5px', color:'#0f172a' }}>{ward.ward}</div>
                       <div style={{ fontSize:'11px', color:'#94a3b8', marginTop:'2px' }}>
-                        {ward.highUrgency > 0 && <span style={{ color:'#dc2626', marginRight:'6px' }}>🔴 {ward.highUrgency} High</span>}
-                        {ward.medUrgency  > 0 && <span style={{ color:'#d97706', marginRight:'6px' }}>🟡 {ward.medUrgency} Med</span>}
-                        {ward.lowUrgency  > 0 && <span style={{ color:'#16a34a' }}>🟢 {ward.lowUrgency} Low</span>}
+                        {ward.highUrgency > 0 && <span style={{ color:'#dc2626', marginRight:'6px' }}> {ward.highUrgency} High</span>}
+                        {ward.medUrgency  > 0 && <span style={{ color:'#d97706', marginRight:'6px' }}> {ward.medUrgency} Med</span>}
+                        {ward.lowUrgency  > 0 && <span style={{ color:'#16a34a' }}> {ward.lowUrgency} Low</span>}
                       </div>
                     </div>
                     <div style={{ textAlign:'right' }}>
@@ -393,15 +393,15 @@ export default function ComplaintHeatmap() {
 
                   {/* Status chips */}
                   <div style={{ display:'flex', gap:'5px', flexWrap:'wrap', marginBottom:'8px' }}>
-                    <span style={S.chip}>⏳ {ward.pending}</span>
-                    <span style={S.chip}>🔄 {ward.inProgress}</span>
-                    <span style={{ ...S.chip, color:'#16a34a' }}>✅ {ward.resolved}</span>
-                    {ward.escalated > 0 && <span style={{ ...S.chip, color:'#dc2626' }}>🚨 {ward.escalated}</span>}
+                    <span style={S.chip}> {ward.pending}</span>
+                    <span style={S.chip}> {ward.inProgress}</span>
+                    <span style={{ ...S.chip, color:'#16a34a' }}> {ward.resolved}</span>
+                    {ward.escalated > 0 && <span style={{ ...S.chip, color:'#dc2626' }}> {ward.escalated}</span>}
                   </div>
 
                   {/* Resolution bar */}
                   <div style={{ display:'flex', justifyContent:'space-between', fontSize:'10.5px', color:'#94a3b8', marginBottom:'3px' }}>
-                    <span>{CAT_ICON[ward.topCategory] || '📋'} {ward.topCategory}</span>
+                    <span>{CAT_ICON[ward.topCategory] || ''} {ward.topCategory}</span>
                     <span>{ward.resolutionRate}% resolved</span>
                   </div>
                   <div style={{ height:'4px', background:'#f1f5f9', borderRadius:'99px', overflow:'hidden' }}>

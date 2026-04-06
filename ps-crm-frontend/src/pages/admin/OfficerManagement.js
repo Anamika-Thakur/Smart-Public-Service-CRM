@@ -105,7 +105,7 @@ export default function OfficerManagement() {
     setAssigning(true);
     try {
       const res = await API.put('/auth/assign-role', { email: assignEmail.trim(), role: assignRole });
-      setAssignSuccess(`✅ ${res.data.message || `Role updated to "${assignRole}" for ${assignEmail}`}`);
+      setAssignSuccess(` ${res.data.message || `Role updated to "${assignRole}" for ${assignEmail}`}`);
       setAssignEmail('');
       fetchOfficers();
     } catch (err) {
@@ -122,12 +122,12 @@ export default function OfficerManagement() {
         {/* Topbar */}
         <div style={styles.topbar}>
           <div>
-            <h1 style={styles.pageTitle}>{tx('🧑‍💼 Officer Management', lang)}</h1>
+            <h1 style={styles.pageTitle}>{tx('‍ Officer Management', lang)}</h1>
             <p style={styles.pageSub}>{tx('Manage field officers and their department assignments', lang)}</p>
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <button style={styles.btnPrimary} onClick={() => { setShowModal(true); setError(''); setSuccess(''); }}>
-              {tx('➕ Add New Officer', lang)}
+              {tx(' Add New Officer', lang)}
             </button>
             <div style={styles.adminChip}>
               <div style={styles.chipAvatar}>{user?.name?.charAt(0)}</div>
@@ -136,8 +136,8 @@ export default function OfficerManagement() {
           </div>
         </div>
 
-        {success && <div style={styles.successBanner}>✅ {success}</div>}
-        {error   && <div style={styles.errorBanner}>⚠️ {error}</div>}
+        {success && <div style={styles.successBanner}> {success}</div>}
+        {error   && <div style={styles.errorBanner}> {error}</div>}
 
         {/* Pending Approvals Section */}
         {pendingOfficers.length > 0 && (
@@ -145,7 +145,7 @@ export default function OfficerManagement() {
             <div style={styles.pendingHeader}>
               <div>
                 <div style={styles.pendingTitle}>
-                  ⏳ {lang === 'hi' ? 'अनुमोदन प्रतीक्षारत' : 'Pending Approvals'}
+                   {lang === 'hi' ? 'अनुमोदन प्रतीक्षारत' : 'Pending Approvals'}
                   <span style={styles.pendingBadge}>{pendingOfficers.length}</span>
                 </div>
                 <div style={styles.pendingSub}>
@@ -162,17 +162,17 @@ export default function OfficerManagement() {
                   <div style={{ flex: 1 }}>
                     <div style={styles.pendingName}>{o.name}</div>
                     <div style={styles.pendingEmail}>{o.email}</div>
-                    <div style={styles.pendingDept}>🏢 {o.department || 'Not specified'} &nbsp;·&nbsp; 📞 {o.phone || 'N/A'}</div>
+                    <div style={styles.pendingDept}> {o.department || 'Not specified'} &nbsp;·&nbsp;  {o.phone || 'N/A'}</div>
                     <div style={styles.pendingDate}>
                       {lang === 'hi' ? 'आवेदन:' : 'Applied:'} {new Date(o.createdAt).toLocaleDateString('en-IN')}
                     </div>
                   </div>
                   <div style={styles.pendingActions}>
                     <button style={styles.approveBtn} onClick={() => handleApprove(o)} disabled={actionLoading === o._id}>
-                      {actionLoading === o._id ? '⏳' : '✅'} {lang === 'hi' ? 'मंजूर करें' : 'Approve'}
+                      {actionLoading === o._id ? '' : ''} {lang === 'hi' ? 'मंजूर करें' : 'Approve'}
                     </button>
                     <button style={styles.rejectBtn} onClick={() => { setRejectModal(o); setRejectReason(''); }} disabled={actionLoading === o._id}>
-                      ❌ {lang === 'hi' ? 'अस्वीकार करें' : 'Reject'}
+                       {lang === 'hi' ? 'अस्वीकार करें' : 'Reject'}
                     </button>
                   </div>
                 </div>
@@ -184,7 +184,7 @@ export default function OfficerManagement() {
         {/* Assign Role Panel */}
         <div style={styles.assignPanel}>
           <div style={styles.assignLeft}>
-            <div style={styles.assignTitle}>{tx('🔑 Assign Role to Existing User', lang)}</div>
+            <div style={styles.assignTitle}>{tx(' Assign Role to Existing User', lang)}</div>
             <div style={styles.assignSub}>
               {tx('Promote any registered citizen to Officer or Admin. Only you can do this.', lang)}
             </div>
@@ -198,28 +198,27 @@ export default function OfficerManagement() {
               onChange={e => { setAssignEmail(e.target.value); setAssignError(''); setAssignSuccess(''); }}
             />
             <select style={styles.assignSelect} value={assignRole} onChange={e => setAssignRole(e.target.value)}>
-              <option value="officer">{tx('🧑‍💼 Field Officer', lang)}</option>
-              <option value="admin">{tx('🏛️ Administrator', lang)}</option>
-              <option value="citizen">{tx('👤 Citizen', lang)}</option>
+              <option value="officer">{tx('‍ Field Officer', lang)}</option>
+              <option value="admin">{tx(' Administrator', lang)}</option>
+              <option value="citizen">{tx(' Citizen', lang)}</option>
             </select>
             <button style={styles.assignBtn} onClick={handleAssignRole} disabled={assigning}>
-              {assigning ? tx('⏳ Assigning...', lang) : tx('✅ Assign Role', lang)}
+              {assigning ? tx(' Assigning...', lang) : tx(' Assign Role', lang)}
             </button>
           </div>
-          {assignError   && <div style={{ ...styles.assignMsg, background: '#FEE2E2', color: '#C62828' }}>⚠️ {assignError}</div>}
+          {assignError   && <div style={{ ...styles.assignMsg, background: '#FEE2E2', color: '#C62828' }}> {assignError}</div>}
           {assignSuccess && <div style={{ ...styles.assignMsg, background: '#DCFCE7', color: '#16A34A' }}>{assignSuccess}</div>}
         </div>
 
         {/* Stats Row */}
-        <div style={styles.statsRow}>
+        <div style={{ ...styles.statsRow, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
           {[
-            { icon: '👥', label: 'Total Officers', value: officers.length,        color: '#0F2557', bg: '#EEF2FF' },
-            { icon: '🟢', label: 'Active',         value: officers.length,        color: '#16A34A', bg: '#DCFCE7' },
-            { icon: '⏳', label: lang === 'hi' ? 'प्रतीक्षारत' : 'Pending', value: pendingOfficers.length, color: '#D97706', bg: '#FEF3C7' },
-            { icon: '🏢', label: 'Departments',    value: [...new Set(officers.map(o => o.department))].filter(Boolean).length, color: '#2563EB', bg: '#DBEAFE' },
+            { label: 'Total Officers', value: officers.length,        color: '#0F2557' },
+            { label: 'Active',         value: officers.length,        color: '#16A34A' },
+            { label: lang === 'hi' ? 'प्रतीक्षारत' : 'Pending', value: pendingOfficers.length, color: '#D97706' },
+            { label: 'Departments',    value: [...new Set(officers.map(o => o.department))].filter(Boolean).length, color: '#2563EB' },
           ].map((s, i) => (
-            <div key={i} style={styles.statCard}>
-              <div style={{ ...styles.statIcon, background: s.bg, color: s.color }}>{s.icon}</div>
+            <div key={i} style={{ ...styles.statCard, borderTop: `4px solid ${s.color}` }}>
               <div style={{ ...styles.statValue, color: s.color }}>{s.value}</div>
               <div style={styles.statLabel}>{s.label}</div>
             </div>
@@ -228,7 +227,7 @@ export default function OfficerManagement() {
 
         {/* Officers Grid */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}>⏳ {tx('Loading...', lang)}</div>
+          <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}> {tx('Loading...', lang)}</div>
         ) : (
           <div style={styles.grid}>
             {officers.map((o, i) => (
@@ -268,7 +267,7 @@ export default function OfficerManagement() {
                   </div>
                 </div>
                 <div style={styles.cardFooter}>
-                  <span style={styles.phoneTag}>📞 {o.phone || 'N/A'}</span>
+                  <span style={styles.phoneTag}> {o.phone || 'N/A'}</span>
                   <button style={styles.btnView} onClick={() => navigate('/admin/complaints')}>
                     {tx('View Cases', lang)}
                   </button>
@@ -276,7 +275,7 @@ export default function OfficerManagement() {
               </div>
             ))}
             <div style={styles.addCard} onClick={() => setShowModal(true)}>
-              <div style={{ fontSize: 40, marginBottom: 12, color: '#C4D4EC' }}>➕</div>
+              <div style={{ fontSize: 40, marginBottom: 12, color: '#C4D4EC' }}></div>
               <div style={{ fontWeight: 700, color: '#6B7FA3', fontSize: 15 }}>{tx('Add New Officer', lang)}</div>
               <div style={{ fontSize: 12, color: '#9EB3CC', marginTop: 6 }}>{tx('Register a field officer account', lang)}</div>
             </div>
@@ -290,7 +289,7 @@ export default function OfficerManagement() {
           <div style={styles.modal}>
             <div style={styles.modalHeader}>
               <h2 style={styles.modalTitle}>{tx('Add New Officer', lang)}</h2>
-              <button style={styles.closeBtn} onClick={() => setShowModal(false)}>✕</button>
+              <button style={styles.closeBtn} onClick={() => setShowModal(false)}></button>
             </div>
             {error && <div style={styles.errorBox}>{error}</div>}
             <div style={styles.formGrid}>
@@ -324,7 +323,7 @@ export default function OfficerManagement() {
             </div>
             <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
               <button style={{ ...styles.btnPrimary, flex: 1 }} onClick={handleCreate} disabled={creating}>
-                {creating ? tx('⏳ Creating...', lang) : tx('✅ Create Officer', lang)}
+                {creating ? tx(' Creating...', lang) : tx(' Create Officer', lang)}
               </button>
               <button style={{ ...styles.btnOutline, flex: 1 }} onClick={() => setShowModal(false)}>
                 {tx('Cancel', lang)}
@@ -339,8 +338,8 @@ export default function OfficerManagement() {
         <div style={styles.overlay}>
           <div style={{ ...styles.modal, maxWidth: 440 }}>
             <div style={styles.modalHeader}>
-              <h2 style={{ ...styles.modalTitle, color: '#dc2626' }}>❌ {lang === 'hi' ? 'अस्वीकार करें' : 'Reject Officer'}</h2>
-              <button style={styles.closeBtn} onClick={() => setRejectModal(null)}>✕</button>
+              <h2 style={{ ...styles.modalTitle, color: '#dc2626' }}> {lang === 'hi' ? 'अस्वीकार करें' : 'Reject Officer'}</h2>
+              <button style={styles.closeBtn} onClick={() => setRejectModal(null)}></button>
             </div>
             <p style={{ fontSize: 14, color: '#555', marginBottom: 16 }}>
               {lang === 'hi'
@@ -361,7 +360,7 @@ export default function OfficerManagement() {
                 style={{ ...styles.btnPrimary, flex: 1, background: '#dc2626' }}
                 onClick={handleReject}
                 disabled={actionLoading === rejectModal._id}>
-                {actionLoading === rejectModal._id ? '⏳' : '❌'} {lang === 'hi' ? 'अस्वीकार करें' : 'Reject'}
+                {actionLoading === rejectModal._id ? '' : ''} {lang === 'hi' ? 'अस्वीकार करें' : 'Reject'}
               </button>
               <button style={{ ...styles.btnOutline, flex: 1 }} onClick={() => setRejectModal(null)}>
                 {tx('Cancel', lang)}

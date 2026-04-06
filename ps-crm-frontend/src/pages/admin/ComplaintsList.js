@@ -15,17 +15,17 @@ function FeedbackSection({ complaintId }) {
 
   if (!feedback) return (
     <div style={{ marginTop: 12, padding: '12px 16px', background: '#FFFBEB', borderRadius: 8, border: '1px solid #FCD34D' }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 4 }}>⭐ CITIZEN FEEDBACK</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 4 }}> CITIZEN FEEDBACK</div>
       <div style={{ fontSize: 13, color: '#9EB3CC' }}>No feedback submitted yet</div>
     </div>
   );
 
   return (
     <div style={{ marginTop: 12, padding: '12px 16px', background: '#FFFBEB', borderRadius: 8, border: '1px solid #FCD34D' }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 8 }}>⭐ CITIZEN FEEDBACK</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 8 }}> CITIZEN FEEDBACK</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
         {[1,2,3,4,5].map(s => (
-          <span key={s} style={{ fontSize: 20, color: s <= feedback.rating ? '#F59E0B' : '#E5E7EB' }}>★</span>
+          <span key={s} style={{ fontSize: 20, color: s <= feedback.rating ? '#F59E0B' : '#E5E7EB' }}></span>
         ))}
         <span style={{ fontSize: 13, fontWeight: 700, color: '#0F2557' }}>{feedback.rating}/5</span>
         <span style={{
@@ -155,10 +155,10 @@ export default function ComplaintsList() {
     return `This complaint appears to concern ${title.toLowerCase()} under the ${category} category at ${locationText} and has been marked as ${urgency}. The field officer should inspect the site, verify the cause of the issue, and take the necessary corrective action on the ground.`;
   };
   const statusSteps = [
-    { key: 'Pending',     label: 'Submitted',   icon: '📝' },
-    { key: 'In Progress', label: 'In Progress', icon: '🔧' },
-    { key: 'Resolved',    label: 'Resolved',    icon: '✅' },
-    { key: 'Escalated',   label: 'Escalated',   icon: '🚨' },
+    { key: 'Pending',     label: 'Submitted',   icon: '' },
+    { key: 'In Progress', label: 'In Progress', icon: '' },
+    { key: 'Resolved',    label: 'Resolved',    icon: '' },
+    { key: 'Escalated',   label: 'Escalated',   icon: '' },
   ];
 
   const stepIndex = (status) => {
@@ -192,11 +192,11 @@ export default function ComplaintsList() {
         {/* Topbar */}
         <div style={styles.topbar}>
           <div>
-            <h1 style={styles.pageTitle}>📋 All Complaints</h1>
+            <h1 style={styles.pageTitle}> All Complaints</h1>
             <p style={styles.pageSub}>Manage, assign and update all citizen complaints</p>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
-            <button style={styles.btnRefresh} onClick={fetchComplaints}>🔄 Refresh</button>
+            <button style={styles.btnRefresh} onClick={fetchComplaints}> Refresh</button>
             <div style={styles.adminChip}>
               <div style={styles.chipAvatar}>{user?.name?.charAt(0)}</div>
               <span style={{ fontSize: 13, fontWeight: 600 }}>{user?.name}</span>
@@ -209,7 +209,7 @@ export default function ComplaintsList() {
           <div style={styles.filtersRow}>
             <div style={{ flex: 2 }}>
               <input style={styles.searchInput}
-                placeholder="🔍 Search by title or citizen name..."
+                placeholder=" Search by title or citizen name..."
                 value={search} onChange={e => setSearch(e.target.value)} />
             </div>
             {[
@@ -223,7 +223,7 @@ export default function ComplaintsList() {
             ))}
             <button style={styles.btnClear}
               onClick={() => { setSearch(''); setStatusFilter('All'); setUrgencyFilter('All'); setCategoryFilter('All'); }}>
-              ✕ Clear
+               Clear
             </button>
           </div>
           <div style={styles.filterStats}>
@@ -236,10 +236,10 @@ export default function ComplaintsList() {
         {/* Table */}
         <div style={styles.tableCard}>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}>⏳ Loading complaints...</div>
+            <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}> Loading complaints...</div>
           ) : filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
+              <div style={{ fontSize: 48, marginBottom: 12 }}></div>
               <div style={{ fontSize: 16, fontWeight: 600 }}>No complaints found</div>
             </div>
           ) : (
@@ -286,7 +286,7 @@ export default function ComplaintsList() {
                               textAlign: 'left',
                             }}
                           >
-                            👥 +{c.allCitizens.length - 1} more
+                             +{c.allCitizens.length - 1} more
                             {expandedCitizenRows[c._id] ? ' ▲' : ' ▼'}
                           </button>
                           {expandedCitizenRows[c._id] && (
@@ -339,7 +339,7 @@ export default function ComplaintsList() {
                     <td style={styles.td}>{new Date(c.createdAt).toLocaleDateString('en-IN')}</td>
 
                     <td style={styles.td}>
-                      <button style={styles.btnTrack} onClick={() => openTrack(c)}>🔍 Track</button>
+                      <button style={styles.btnTrack} onClick={() => openTrack(c)}> Track</button>
                     </td>
 
                     <td style={styles.td}>
@@ -365,20 +365,20 @@ export default function ComplaintsList() {
             {/* Header */}
             <div style={modal.header}>
               <div>
-                <h2 style={modal.title}>🔍 Complaint Details</h2>
+                <h2 style={modal.title}> Complaint Details</h2>
                 <p style={modal.sub}>{d?.title}</p>
               </div>
-              <button style={modal.closeBtn} onClick={() => setTrackModal(null)}>✕</button>
+              <button style={modal.closeBtn} onClick={() => setTrackModal(null)}></button>
             </div>
 
             {trackLoading ? (
-              <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}>⏳ Loading details...</div>
+              <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}> Loading details...</div>
             ) : (
               <div style={modal.body}>
 
                 {/* ── Progress Timeline ── */}
                 <div style={modal.section}>
-                  <div style={modal.sectionTitle}>📍 Progress</div>
+                  <div style={modal.sectionTitle}> Progress</div>
                   <div style={modal.timeline}>
                     {statusSteps.map((step, idx) => {
                       const isEscalated = d?.status === 'Escalated';
@@ -396,7 +396,7 @@ export default function ComplaintsList() {
                               border: active ? `2px solid ${isEscalated ? '#DC2626' : '#16A34A'}` : '2px solid #E8EEF8',
                               boxShadow: active ? `0 0 0 4px ${isEscalated ? '#FEE2E2' : '#DCFCE7'}` : 'none',
                             }}>
-                              {done ? (active && isEscalated ? '🚨' : '✅') : step.icon}
+                              {done ? (active && isEscalated ? '' : '') : step.icon}
                             </div>
                             <div style={{ fontSize: 11, fontWeight: done ? 700 : 400, color: done ? '#0F2557' : '#9EB3CC', whiteSpace: 'nowrap' }}>
                               {step.label}
@@ -413,7 +413,7 @@ export default function ComplaintsList() {
 
                 {/* ── Info Grid ── */}
                 <div style={modal.section}>
-                  <div style={modal.sectionTitle}>📄 Complaint Info</div>
+                  <div style={modal.sectionTitle}> Complaint Info</div>
                   <div style={modal.grid}>
                     {[
                       { label: 'Complaint ID', value: d?._id?.slice(-8).toUpperCase() },
@@ -432,7 +432,7 @@ export default function ComplaintsList() {
 
                   {/* ── Citizens Section (handles duplicates) ── */}
                   <div style={{ marginTop: 12, padding: '12px 16px', background: '#F0FBFF', borderRadius: 8, border: '1px solid #7DD3FC' }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0369A1', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>👥 Citizen</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0369A1', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}> Citizen</div>
                     {d?.isDuplicate ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {d?.allCitizens?.map((citizen, idx) => (
@@ -442,7 +442,7 @@ export default function ComplaintsList() {
                             {citizen?.phone && <div style={{ fontSize: 11, color: '#6B7FA3' }}>{citizen.phone}</div>}
                           </div>
                         ))}
-                        <div style={{ fontSize: 11, color: '#0369A1', fontStyle: 'italic', marginTop: 6 }}>⚠️ Multiple citizens reported this issue from the same location</div>
+                        <div style={{ fontSize: 11, color: '#0369A1', fontStyle: 'italic', marginTop: 6 }}> Multiple citizens reported this issue from the same location</div>
                       </div>
                     ) : (
                       <div>
@@ -455,25 +455,25 @@ export default function ComplaintsList() {
 
                   {/* ── SLA Deadline ── */}
                   <div style={{ marginTop: 12, padding: '12px 16px', background: '#FEF3C7', borderRadius: 8, border: '1px solid #FBBF24' }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 4 }}>⏱️ SLA Deadline</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 4 }}> SLA Deadline</div>
                     <div style={{ fontSize: 13, color: '#3A4E70' }}>{d?.sla?.deadline ? new Date(d.sla.deadline).toLocaleDateString('en-IN') : 'N/A'}</div>
                   </div>
 
                   {/* ── Status ── */}  
                   <div style={{ marginTop: 12, padding: '12px 16px', background: '#F3F4F6', borderRadius: 8, border: '1px solid #E5E7EB' }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7FA3', marginBottom: 4 }}>📊 Current Status</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7FA3', marginBottom: 4 }}> Current Status</div>
                     <div style={{ fontSize: 13, color: '#0F2557', fontWeight: 600 }}>{d?.status}</div>
                   </div>
 
                   <div style={{ marginTop: 12, padding: '12px 16px', background: '#F8FAFC', borderRadius: 8, border: '1px solid #E8EEF8' }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7FA3', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>📝 Description</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7FA3', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}> Description</div>
                     <div style={{ fontSize: 13, color: '#3A4E70', lineHeight: 1.6 }}>{getComplaintSummary(d)}</div>
                   </div>
 
                   {/* ── Resolution Note ── */}
                   {d?.resolution && (
                     <div style={{ marginTop: 12, padding: '12px 16px', background: '#F0FDF4', borderRadius: 8, borderLeft: '3px solid #16A34A' }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#16A34A', marginBottom: 4 }}>✅ Resolution Note</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#16A34A', marginBottom: 4 }}> Resolution Note</div>
                       <div style={{ fontSize: 13, color: '#1A3A2A' }}>{d.resolution}</div>
                     </div>
                   )}
@@ -486,17 +486,17 @@ export default function ComplaintsList() {
 
                 {/* ── Before & After Photos ── */}
                 <div style={modal.section}>
-                  <div style={modal.sectionTitle}>📸 Before & After Photos</div>
+                  <div style={modal.sectionTitle}> Before & After Photos</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
                     {/* BEFORE */}
                     <div>
                       <div style={modal.photoHeader}>
-                        <span style={{ ...modal.photoBadge, background: '#FEE2E2', color: '#DC2626' }}>🔴 Before</span>
+                        <span style={{ ...modal.photoBadge, background: '#FEE2E2', color: '#DC2626' }}> Before</span>
                         <span style={modal.photoCount}>{beforeImgs.length} photo(s) · by citizen</span>
                       </div>
                       {beforeImgs.length === 0 ? (
-                        <div style={modal.emptyPhotos}>📷 No photos uploaded by citizen</div>
+                        <div style={modal.emptyPhotos}> No photos uploaded by citizen</div>
                       ) : (
                         <div style={modal.photoGrid}>
                           {beforeImgs.map((img, i) => (
@@ -512,12 +512,12 @@ export default function ComplaintsList() {
                     {/* AFTER */}
                     <div>
                       <div style={modal.photoHeader}>
-                        <span style={{ ...modal.photoBadge, background: '#DCFCE7', color: '#16A34A' }}>🟢 After</span>
+                        <span style={{ ...modal.photoBadge, background: '#DCFCE7', color: '#16A34A' }}> After</span>
                         <span style={modal.photoCount}>{afterImgs.length} photo(s) · by officer</span>
                       </div>
                       {afterImgs.length === 0 ? (
                         <div style={modal.emptyPhotos}>
-                          {d?.status === 'Resolved' ? '📷 Officer did not upload after photos' : '⏳ Complaint not yet resolved'}
+                          {d?.status === 'Resolved' ? ' Officer did not upload after photos' : ' Complaint not yet resolved'}
                         </div>
                       ) : (
                         <div style={modal.photoGrid}>
@@ -545,7 +545,7 @@ export default function ComplaintsList() {
           onClick={() => setLightbox(null)}>
           <img src={lightbox} alt="full" style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 12, boxShadow: '0 8px 40px rgba(0,0,0,0.6)' }} />
           <button style={{ position: 'absolute', top: 20, right: 24, background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', fontSize: 22, width: 44, height: 44, borderRadius: '50%', cursor: 'pointer' }}
-            onClick={() => setLightbox(null)}>✕</button>
+            onClick={() => setLightbox(null)}></button>
         </div>
       )}
     </div>
@@ -555,12 +555,12 @@ export default function ComplaintsList() {
 // ── Shared Admin Sidebar ─────────────────────────────────────────────────────
 export function Sidebar({ navigate, logout, user, active }) {
   const links = [
-    { icon: '📊', label: 'Dashboard',        path: '/admin/dashboard',  key: 'dashboard' },
-    { icon: '📋', label: 'All Complaints',   path: '/admin/complaints', key: 'complaints' },
-    { icon: '🧑‍💼', label: 'Officers',       path: '/admin/officers',   key: 'officers' },
-    { icon: '📈', label: 'Analytics',        path: '/admin/analytics',  key: 'analytics' },
-    { icon: '🌐', label: 'Public Dashboard', path: '/public',           key: 'public' },
-    { icon: '🔔', label: 'Notifications',    path: '/notifications',    key: 'notifications' },
+    { icon: '', label: 'Dashboard',        path: '/admin/dashboard',  key: 'dashboard' },
+    { icon: '', label: 'All Complaints',   path: '/admin/complaints', key: 'complaints' },
+    { icon: '‍', label: 'Officers',       path: '/admin/officers',   key: 'officers' },
+    { icon: '', label: 'Analytics',        path: '/admin/analytics',  key: 'analytics' },
+    { icon: '', label: 'Public Dashboard', path: '/public',           key: 'public' },
+    { icon: '', label: 'Notifications',    path: '/notifications',    key: 'notifications' },
   ];
 
   return (
@@ -591,7 +591,7 @@ export function Sidebar({ navigate, logout, user, active }) {
       </nav>
       <div style={sidebarStyles.bottom}>
         <div style={{ ...sidebarStyles.navLink, color: 'rgba(255,255,255,0.4)' }} onClick={logout}>
-          <span style={{ fontSize: 18 }}>🚪</span><span>Logout</span>
+          <span style={{ fontSize: 18 }}></span><span>Logout</span>
         </div>
       </div>
     </div>

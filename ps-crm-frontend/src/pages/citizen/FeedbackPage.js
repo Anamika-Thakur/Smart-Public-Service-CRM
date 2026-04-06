@@ -13,7 +13,7 @@ function PlatformRatings({ lang }) {
       .catch(() => {});
   }, []);
 
-  const avgRating    = data?.avgRating    ? `${data.avgRating} ★` : '—';
+  const avgRating    = data?.avgRating    ? `${data.avgRating} ` : '—';
   const totalReviews = data?.totalRatings ?? '—';
   const satisfaction = data?.totalRatings
     ? `${Math.round((data.positive / data.totalRatings) * 100)}%`
@@ -57,14 +57,14 @@ export default function FeedbackPage() {
   const [error, setError] = useState('');
 
   const aspectOptions = lang === 'hi'
-    ? ['⚡ त्वरित समाधान', '💬 अच्छा संवाद', '🎯 सटीक समाधान', '👤 व्यावसायिक अधिकारी', '📱 आसान प्रक्रिया', '🔔 समय पर अपडेट']
-    : ['⚡ Quick Resolution', '💬 Good Communication', '🎯 Accurate Solution', '👤 Professional Officer', '📱 Easy Process', '🔔 Timely Updates'];
+    ? [' त्वरित समाधान', ' अच्छा संवाद', ' सटीक समाधान', ' व्यावसायिक अधिकारी', ' आसान प्रक्रिया', ' समय पर अपडेट']
+    : [' Quick Resolution', ' Good Communication', ' Accurate Solution', ' Professional Officer', ' Easy Process', ' Timely Updates'];
 
   const toggleAspect = (a) => setAspects(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
 
   const labels = ['', tx('Very Poor', lang), tx('Poor', lang), tx('Average', lang), tx('Good', lang), tx('Excellent', lang)];
   const colors = ['', '#DC2626', '#D97706', '#2563EB', '#16A34A', '#0F2557'];
-  const emojis = ['', '😠', '😞', '😐', '😊', '🤩'];
+  const emojis = ['', '', '', '', '', ''];
 
   const handleSubmit = async () => {
     if (!rating) { setError(tx('Please select a rating', lang)); return; }
@@ -85,7 +85,7 @@ export default function FeedbackPage() {
         <Header navigate={navigate} lang={lang} />
         <div style={styles.centerWrap}>
           <div style={styles.successCard}>
-            <div style={{ fontSize: 72, marginBottom: 16 }}>🎉</div>
+            <div style={{ fontSize: 72, marginBottom: 16 }}></div>
             <h2 style={styles.successTitle}>{tx('Thank You for Your Feedback!', lang)}</h2>
             <p style={styles.successSub}>{tx('Your feedback helps us improve public services for everyone.', lang)}</p>
             <div style={styles.ratingDisplay}>
@@ -93,7 +93,7 @@ export default function FeedbackPage() {
               <div style={{ fontSize: 18, fontWeight: 700, color: colors[rating], marginTop: 8 }}>{labels[rating]}</div>
               <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginTop: 8 }}>
                 {[1, 2, 3, 4, 5].map(s => (
-                  <span key={s} style={{ fontSize: 28, color: s <= rating ? '#F59E0B' : '#E5E7EB' }}>★</span>
+                  <span key={s} style={{ fontSize: 28, color: s <= rating ? '#F59E0B' : '#E5E7EB' }}></span>
                 ))}
               </div>
             </div>
@@ -107,10 +107,10 @@ export default function FeedbackPage() {
             )}
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 28 }}>
               <button style={styles.btnPrimary} onClick={() => navigate('/citizen/dashboard')}>
-                {tx('📊 My Dashboard', lang)}
+                {tx(' My Dashboard', lang)}
               </button>
               <button style={styles.btnOutline} onClick={() => navigate('/citizen/submit')}>
-                {tx('📝 New Complaint', lang)}
+                {tx(' New Complaint', lang)}
               </button>
             </div>
           </div>
@@ -124,7 +124,7 @@ export default function FeedbackPage() {
       <Header navigate={navigate} lang={lang} />
       <div style={styles.container}>
         <div style={styles.pageHead}>
-          <h1 style={styles.pageTitle}>{tx('⭐ Rate Your Experience', lang)}</h1>
+          <h1 style={styles.pageTitle}>{tx(' Rate Your Experience', lang)}</h1>
           <p style={styles.pageSub}>
             {tx('Help us improve by sharing your feedback', lang)} — #{id?.slice(-8).toUpperCase()}
           </p>
@@ -137,7 +137,7 @@ export default function FeedbackPage() {
 
             {/* Star Rating */}
             <div style={styles.card}>
-              <div style={styles.cardTitle}>{tx('⭐ Overall Rating', lang)}</div>
+              <div style={styles.cardTitle}>{tx(' Overall Rating', lang)}</div>
               <div style={styles.starsRow}>
                 {[1, 2, 3, 4, 5].map(s => (
                   <span key={s}
@@ -145,7 +145,7 @@ export default function FeedbackPage() {
                     onMouseEnter={() => setHover(s)}
                     onMouseLeave={() => setHover(0)}
                     onClick={() => setRating(s)}>
-                    ★
+                    
                   </span>
                 ))}
               </div>
@@ -161,7 +161,7 @@ export default function FeedbackPage() {
 
             {/* Aspects */}
             <div style={{ ...styles.card, marginTop: 16 }}>
-              <div style={styles.cardTitle}>{tx('👍 What went well? (Optional)', lang)}</div>
+              <div style={styles.cardTitle}>{tx(' What went well? (Optional)', lang)}</div>
               <div style={styles.aspectsGrid}>
                 {aspectOptions.map((a, i) => (
                   <div key={i} onClick={() => toggleAspect(a)}
@@ -174,7 +174,7 @@ export default function FeedbackPage() {
 
             {/* Comment */}
             <div style={{ ...styles.card, marginTop: 16 }}>
-              <div style={styles.cardTitle}>{tx('💬 Additional Comments (Optional)', lang)}</div>
+              <div style={styles.cardTitle}>{tx(' Additional Comments (Optional)', lang)}</div>
               <textarea
                 style={{ ...styles.input, height: 120, resize: 'vertical' }}
                 placeholder={tx('Share your experience in detail...', lang)}
@@ -190,19 +190,19 @@ export default function FeedbackPage() {
               style={{ ...styles.btnPrimary, width: '100%', padding: 14, fontSize: 16, marginTop: 16 }}
               onClick={handleSubmit}
               disabled={loading}>
-              {loading ? tx('⏳ Submitting...', lang) : tx('✅ Submit Feedback', lang)}
+              {loading ? tx(' Submitting...', lang) : tx(' Submit Feedback', lang)}
             </button>
           </div>
 
           {/* Right - Info */}
           <div>
             <div style={styles.card}>
-              <div style={styles.cardTitle}>{tx('ℹ️ Why Your Feedback Matters', lang)}</div>
+              <div style={styles.cardTitle}>{tx(' Why Your Feedback Matters', lang)}</div>
               {[
-                { icon: '📊', title: 'Improve Services',   desc: lang === 'hi' ? 'आपकी रेटिंग सुधार की जरूरत वाले क्षेत्रों की पहचान करने में मदद करती है' : 'Your ratings help identify areas needing improvement' },
-                { icon: '👮', title: 'Officer Performance', desc: lang === 'hi' ? 'फ़ीडबैक सीधे अधिकारी प्रदर्शन समीक्षाओं को प्रभावित करता है' : 'Feedback directly impacts officer performance reviews' },
-                { icon: '🏛️', title: 'Policy Changes',     desc: lang === 'hi' ? 'फ़ीडबैक के रुझान नीति सुधारों को बढ़ावा देते हैं' : 'Trends in feedback drive policy improvements' },
-                { icon: '🌟', title: 'Reward Excellence',  desc: lang === 'hi' ? 'उच्च रेटेड अधिकारियों को मान्यता और पुरस्कार मिलते हैं' : 'High-rated officers receive recognition and rewards' },
+                { icon: '', title: 'Improve Services',   desc: lang === 'hi' ? 'आपकी रेटिंग सुधार की जरूरत वाले क्षेत्रों की पहचान करने में मदद करती है' : 'Your ratings help identify areas needing improvement' },
+                { icon: '', title: 'Officer Performance', desc: lang === 'hi' ? 'फ़ीडबैक सीधे अधिकारी प्रदर्शन समीक्षाओं को प्रभावित करता है' : 'Feedback directly impacts officer performance reviews' },
+                { icon: '', title: 'Policy Changes',     desc: lang === 'hi' ? 'फ़ीडबैक के रुझान नीति सुधारों को बढ़ावा देते हैं' : 'Trends in feedback drive policy improvements' },
+                { icon: '', title: 'Reward Excellence',  desc: lang === 'hi' ? 'उच्च रेटेड अधिकारियों को मान्यता और पुरस्कार मिलते हैं' : 'High-rated officers receive recognition and rewards' },
               ].map((f, i) => (
                 <div key={i} style={styles.infoRow}>
                   <div style={styles.infoIcon}>{f.icon}</div>
@@ -214,11 +214,11 @@ export default function FeedbackPage() {
               ))}
             </div>
 
-            {/* ✅ Real Platform Ratings */}
+            {/*  Real Platform Ratings */}
             <PlatformRatings lang={lang} />
 
             <div style={{ ...styles.card, marginTop: 16 }}>
-              <div style={styles.cardTitle}>{tx('🔔 What Happens Next?', lang)}</div>
+              <div style={styles.cardTitle}>{tx(' What Happens Next?', lang)}</div>
               {[
                 lang === 'hi' ? 'फ़ीडबैक सिस्टम में दर्ज किया जाता है'          : 'Feedback is recorded in the system',
                 lang === 'hi' ? 'अधिकारी प्रदर्शन स्कोर अपडेट किया जाता है'   : 'Officer performance score is updated',
@@ -248,7 +248,7 @@ function Header({ navigate, lang }) {
       </div>
       <header style={{ background: '#fff', borderBottom: '1px solid #D8E2F0', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', boxShadow: '0 2px 12px rgba(15,37,87,0.08)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <div style={{ width: 40, height: 40, borderRadius: 9, background: 'linear-gradient(135deg,#0F2557,#1565C0)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🏛️</div>
+          <div style={{ width: 40, height: 40, borderRadius: 9, background: 'linear-gradient(135deg,#0F2557,#1565C0)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}></div>
           <div>
             <div style={{ fontFamily: "'Noto Serif',serif", fontSize: 16, fontWeight: 700, color: '#0F2557' }}>
               {tx('PS-CRM Gov Portal', lang)}
@@ -259,11 +259,11 @@ function Header({ navigate, lang }) {
         <div style={{ display: 'flex', gap: 9 }}>
           <button style={{ padding: '7px 16px', borderRadius: 8, border: '1.5px solid #0F2557', color: '#0F2557', background: 'transparent', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
             onClick={() => navigate('/citizen/dashboard')}>
-            {tx('📊 My Dashboard', lang)}
+            {tx(' My Dashboard', lang)}
           </button>
           <button style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: '#E8620A', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
             onClick={() => navigate('/citizen/submit')}>
-            {tx('📝 New Complaint', lang)}
+            {tx(' New Complaint', lang)}
           </button>
         </div>
       </header>

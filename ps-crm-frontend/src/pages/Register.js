@@ -109,7 +109,7 @@ export default function Register() {
       <div style={styles.left}>
         <div style={styles.leftInner}>
           <div style={styles.leftLogo} onClick={() => navigate('/')}>
-            <div style={styles.emblem}>PS</div>
+            <div style={styles.emblem}>🏛️</div>
             <div>
               <div style={styles.logoText}>{tx('PS-CRM Gov Portal', lang)}</div>
               <div style={styles.logoSub}>{tx('Smart Public Service CRM', lang)}</div>

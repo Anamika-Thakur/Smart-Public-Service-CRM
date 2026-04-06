@@ -35,10 +35,10 @@ export default function Dashboard() {
             {/* Overview Cards */}
             <div style={styles.cards}>
               {[
-                { label: 'Total Complaints', value: stats.overview.total, color: '#4da6ff', icon: '📋' },
-                { label: 'Pending', value: stats.overview.pending, color: '#f59e0b', icon: '⏳' },
-                { label: 'In Progress', value: stats.overview.inProgress, color: '#8b5cf6', icon: '🔄' },
-                { label: 'Resolved', value: stats.overview.resolved, color: '#22c55e', icon: '✅' },
+                { label: 'Total Complaints', value: stats.overview.total, color: '#4da6ff', icon: '' },
+                { label: 'Pending', value: stats.overview.pending, color: '#f59e0b', icon: '' },
+                { label: 'In Progress', value: stats.overview.inProgress, color: '#8b5cf6', icon: '' },
+                { label: 'Resolved', value: stats.overview.resolved, color: '#22c55e', icon: '' },
               ].map(card => (
                 <div key={card.label} style={{ ...styles.card, borderTop: `4px solid ${card.color}` }}>
                   <div style={styles.cardIcon}>{card.icon}</div>

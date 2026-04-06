@@ -4,40 +4,9 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, ResponsiveCo
 import { useLang, tx } from '../../context/LanguageContext';
 import LanguageToggle from '../../components/layout/LanguageToggle';
 import ComplaintHeatmap from '../../components/ui/ComplaintHeatmap';
+import { WARD_ZONE_MAP } from '../../data/wardInfo';
 
 const COLORS = ['#0F2557', '#E8620A', '#1B7A3E', '#1565C0', '#8B5CF6', '#DB2777'];
-const ALL_WARDS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
-
-// ── Heatmap Cell ─────────────────────────────────────────────────────────────
-function HeatCell({ ward, count, max }) {
-  const intensity = max > 0 ? count / max : 0;
-  const getColor = (i) => {
-    if (i === 0)       return { bg: '#F0F4FB', text: '#9EB3CC' };
-    if (i < 0.2)       return { bg: '#DBEAFE', text: '#1565C0' };
-    if (i < 0.4)       return { bg: '#93C5FD', text: '#1D4ED8' };
-    if (i < 0.6)       return { bg: '#F59E0B', text: '#fff' };
-    if (i < 0.8)       return { bg: '#EF4444', text: '#fff' };
-    return               { bg: '#7F1D1D', text: '#fff' };
-  };
-  const { bg, text } = getColor(intensity);
-  return (
-    <div style={{
-      width: 64, height: 64, borderRadius: 10, background: bg,
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      cursor: count > 0 ? 'pointer' : 'default',
-      boxShadow: count > 0 ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
-      transition: 'transform 0.15s',
-      position: 'relative',
-    }}
-      title={`Ward ${ward}: ${count} complaints`}
-      onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
-      onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-    >
-      <div style={{ fontSize: 13, fontWeight: 700, color: text }}>W-{ward}</div>
-      <div style={{ fontSize: 16, fontWeight: 700, color: text, marginTop: 2 }}>{count}</div>
-    </div>
-  );
-}
 
 export default function PublicDashboard() {
   const navigate = useNavigate();
@@ -75,14 +44,19 @@ export default function PublicDashboard() {
 
   const resolutionRate = stats ? ((stats.resolved / (stats.total || 1)) * 100).toFixed(1) : 0;
 
-  // Build full ward map — all 26 wards, 0 if no data
+  // Build ward map from stats and include every ward from the official ward list
   const wardMap = {};
-  ALL_WARDS.forEach(w => { wardMap[`Ward ${w}`] = 0; });
   stats?.byWard?.filter(w => w._id).forEach(w => { wardMap[w._id] = w.count; });
 
-  const wardData = Object.entries(wardMap)
-    .map(([ward, complaints]) => ({ ward, complaints }))
-    .sort((a, b) => sortWard === 'count' ? b.complaints - a.complaints : a.ward.localeCompare(b.ward));
+  const wardData = Object.entries(WARD_ZONE_MAP)
+    .map(([ward, zone]) => ({ ward, zone, complaints: wardMap[ward] || 0 }))
+    .sort((a, b) => {
+      if (sortWard === 'count') {
+        const diff = b.complaints - a.complaints;
+        return diff !== 0 ? diff : a.ward.localeCompare(b.ward);
+      }
+      return a.ward.localeCompare(b.ward);
+    });
 
   const activeWards  = wardData.filter(w => w.complaints > 0);
   const maxCount     = Math.max(...wardData.map(w => w.complaints), 1);
@@ -138,8 +112,8 @@ export default function PublicDashboard() {
         <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
           <button style={styles.btnOutline} onClick={() => window.history.back()}>{'<'} {tx('Back', lang)}</button>
           <LanguageToggle style={{ border: '1.5px solid #0F2557', background: 'rgba(15,37,87,0.08)', color: '#0F2557' }} />
-          <button style={styles.btnOutline} onClick={() => navigate('/citizen/track')}>🔍 {tx('Track', lang)}</button>
-          <button style={styles.btnOutline} onClick={() => navigate('/')}>🏠 {tx('Home', lang)}</button>
+          <button style={styles.btnOutline} onClick={() => navigate('/citizen/track')}> {tx('Track', lang)}</button>
+          <button style={styles.btnOutline} onClick={() => navigate('/')}> {tx('Home', lang)}</button>
         </div>
       </header>
 
@@ -162,7 +136,7 @@ export default function PublicDashboard() {
               {tx('PLATFORM STATISTICS · LIVE', lang)}
             </div>
             {loading ? (
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, padding: '20px 0' }}>⏳ {tx('Loading...', lang)}</div>
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, padding: '20px 0' }}> {tx('Loading...', lang)}</div>
             ) : stats ? (
               <>
                 <div style={styles.platformGrid}>
@@ -180,18 +154,17 @@ export default function PublicDashboard() {
                 </div>
                 <div style={styles.platformChannelsLabel}>{tx('SUBMISSION CHANNELS', lang)}</div>
                 <div style={styles.platformChannels}>
-                  {[{ icon: '🌐', label: tx('Web', lang) }, { icon: '📱', label: tx('App', lang) }, { icon: '💬', label: 'WhatsApp' }, { icon: '📩', label: 'SMS' }].map((ch, i) => (
+                  {[{ label: tx('Web', lang) }, { label: tx('App', lang) }, { label: 'WhatsApp' }, { label: 'SMS' }].map((ch, i) => (
                     <div key={i} style={styles.channelChip}>
-                      <span style={{ fontSize: 20 }}>{ch.icon}</span>
                       <span style={styles.channelLabel}>{ch.label}</span>
                     </div>
                   ))}
                 </div>
-                <div style={styles.otpNote}>{tx('🔒 OTP-verified login to file & manage complaints', lang)}</div>
+                <div style={styles.otpNote}>{tx(' OTP-verified login to file & manage complaints', lang)}</div>
               </>
             ) : (
               <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, padding: '20px 0' }}>
-                ⚠️ {lang === 'hi' ? 'डेटा लोड नहीं हो सका' : 'Could not load data'}
+                 {lang === 'hi' ? 'डेटा लोड नहीं हो सका' : 'Could not load data'}
               </div>
             )}
           </div>
@@ -201,12 +174,12 @@ export default function PublicDashboard() {
       <div style={styles.container}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 80, color: '#6B7FA3' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>📊</div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}></div>
             <div style={{ fontSize: 16, fontWeight: 600 }}>{tx('Loading...', lang)}</div>
           </div>
         ) : !stats ? (
           <div style={{ textAlign: 'center', padding: 80, color: '#6B7FA3' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}></div>
             <div style={{ fontSize: 16, fontWeight: 600 }}>
               {lang === 'hi' ? 'बैकएंड से डेटा नहीं मिला।' : 'Could not fetch data. Make sure backend is running.'}
             </div>
@@ -218,17 +191,16 @@ export default function PublicDashboard() {
               <>
                 <div style={styles.cardsRow}>
                   {[
-                    { icon: '📋', label: tx('Total Complaints', lang), value: stats.total,      color: '#0F2557', bg: '#EEF2FF', pct: 100 },
-                    { icon: '⏳', label: tx('Pending', lang),           value: stats.pending,    color: '#D97706', bg: '#FEF3C7', pct: stats.total ? ((stats.pending    / stats.total) * 100).toFixed(0) : 0 },
-                    { icon: '🔄', label: tx('In Progress', lang),       value: stats.inProgress, color: '#2563EB', bg: '#DBEAFE', pct: stats.total ? ((stats.inProgress / stats.total) * 100).toFixed(0) : 0 },
-                    { icon: '✅', label: tx('Resolved', lang),           value: stats.resolved,   color: '#16A34A', bg: '#DCFCE7', pct: stats.total ? ((stats.resolved   / stats.total) * 100).toFixed(0) : 0 },
+                    { label: tx('Total Complaints', lang), value: stats.total,      color: '#0F2557', bg: '#EEF2FF', pct: 100 },
+                    { label: tx('Pending', lang),           value: stats.pending,    color: '#D97706', bg: '#FEF3C7', pct: stats.total ? ((stats.pending    / stats.total) * 100).toFixed(0) : 0 },
+                    { label: tx('In Progress', lang),       value: stats.inProgress, color: '#2563EB', bg: '#DBEAFE', pct: stats.total ? ((stats.inProgress / stats.total) * 100).toFixed(0) : 0 },
+                    { label: tx('Resolved', lang),           value: stats.resolved,   color: '#16A34A', bg: '#DCFCE7', pct: stats.total ? ((stats.resolved   / stats.total) * 100).toFixed(0) : 0 },
                   ].map((c, i) => (
-                    <div key={i} style={styles.statCard}>
-                      <div style={{ ...styles.statIcon, background: c.bg }}>{c.icon}</div>
+                    <div key={i} style={{ ...styles.statCard, borderTop: `4px solid ${c.color}` }}>
                       <div style={{ ...styles.statValue, color: c.color }}>{c.value}</div>
                       <div style={styles.statLabel}>{c.label}</div>
                       <div style={{ fontSize: 12, color: c.color, fontWeight: 700, marginTop: 4 }}>{c.pct}% {tx('of total', lang)}</div>
-                      <div style={{ height: 4, background: c.bg, borderRadius: 2, marginTop: 8, overflow: 'hidden' }}>
+                      <div style={{ height: 4, background: c.bg, borderRadius: 2, marginTop: 12, overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${c.pct}%`, background: c.color, borderRadius: 2 }} />
                       </div>
                     </div>
@@ -236,7 +208,7 @@ export default function PublicDashboard() {
                 </div>
                 <div style={styles.chartsRow}>
                   <div style={styles.chartCard}>
-                    <div style={styles.chartTitle}>{tx('📊 Complaints by Category', lang)}</div>
+                    <div style={styles.chartTitle}>{tx(' Complaints by Category', lang)}</div>
                     {stats.byCategory?.length > 0 ? (
                       <ResponsiveContainer width="100%" height={260}>
                         <BarChart data={stats.byCategory} barSize={30}>
@@ -253,7 +225,7 @@ export default function PublicDashboard() {
                     )}
                   </div>
                   <div style={styles.chartCard}>
-                    <div style={styles.chartTitle}>{tx('🎯 Resolution Status', lang)}</div>
+                    <div style={styles.chartTitle}>{tx(' Resolution Status', lang)}</div>
                     <ResponsiveContainer width="100%" height={260}>
                       <PieChart>
                         <Pie data={[
@@ -273,22 +245,21 @@ export default function PublicDashboard() {
                   <ComplaintHeatmap />
                 </section>
                 <div style={styles.accountCard}>
-                  <h2 style={styles.accountTitle}>{tx('🏛️ Government Accountability Metrics', lang)}</h2>
+                  <h2 style={styles.accountTitle}>{tx(' Government Accountability Metrics', lang)}</h2>
                   <div style={styles.accountGrid}>
                     {[
-                      { icon: '⚡', label: tx('Avg Resolution Time', lang), value: stats.avgResponse != null ? `${((stats.avgResponse || 0) / 24).toFixed(1)} days` : 'N/A', good: (stats.avgResponse || 0) / 24 <= 3 },
-                      { icon: '✅', label: tx('SLA Compliance', lang),       value: `${resolutionRate}%`, good: parseFloat(resolutionRate) > 80 },
-                      { icon: '🔄', label: tx('Active Cases', lang),         value: stats.inProgress || 0, good: true },
-                      { icon: '📈', label: tx('Monthly Growth', lang),       value: stats.monthlyGrowth != null ? `${stats.monthlyGrowth >= 0 ? '+' : ''}${stats.monthlyGrowth}%` : '0%', good: (stats.monthlyGrowth || 0) >= 0 },
-                      { icon: '⭐', label: tx('Citizen Satisfaction', lang), value: stats.citizenSatisfaction != null ? `${stats.citizenSatisfaction.toFixed(1)}/5` : 'N/A', good: (stats.citizenSatisfaction || 0) >= 3.5 },
-                      { icon: '🚨', label: tx('Escalation Rate', lang),      value: stats.escalatedRate != null ? `${stats.escalatedRate}%` : '0%', good: false },
+                      { label: tx('Avg Resolution Time', lang), value: stats.avgResponse != null ? `${((stats.avgResponse || 0) / 24).toFixed(1)} days` : 'N/A', good: (stats.avgResponse || 0) / 24 <= 3 },
+                      { label: tx('SLA Compliance', lang),       value: `${resolutionRate}%`, good: parseFloat(resolutionRate) > 80 },
+                      { label: tx('Active Cases', lang),         value: stats.inProgress || 0, good: true },
+                      { label: tx('Monthly Growth', lang),       value: stats.monthlyGrowth != null ? `${stats.monthlyGrowth >= 0 ? '+' : ''}${stats.monthlyGrowth}%` : '0%', good: (stats.monthlyGrowth || 0) >= 0 },
+                      { label: tx('Citizen Satisfaction', lang), value: stats.citizenSatisfaction != null ? `${stats.citizenSatisfaction.toFixed(1)}/5` : 'N/A', good: (stats.citizenSatisfaction || 0) >= 3.5 },
+                      { label: tx('Escalation Rate', lang),      value: stats.escalatedRate != null ? `${stats.escalatedRate}%` : '0%', good: false },
                     ].map((m, i) => (
                       <div key={i} style={styles.metricCard}>
-                        <div style={{ fontSize: 28, marginBottom: 8 }}>{m.icon}</div>
-                        <div style={{ fontSize: 22, fontWeight: 700, color: m.good ? '#16A34A' : '#DC2626' }}>{m.value}</div>
-                        <div style={{ fontSize: 12, color: '#6B7FA3', marginTop: 4 }}>{m.label}</div>
-                        <div style={{ marginTop: 8, padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: m.good ? '#DCFCE7' : '#FEE2E2', color: m.good ? '#16A34A' : '#DC2626', display: 'inline-block' }}>
-                          {m.good ? tx('✅ Good', lang) : tx('⚠️ Monitor', lang)}
+                        <div style={{ ...styles.metricValue, color: m.good ? '#16A34A' : '#DC2626' }}>{m.value}</div>
+                        <div style={styles.metricLabel}>{m.label}</div>
+                        <div style={{ marginTop: 12, padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: m.good ? '#DCFCE7' : '#FEE2E2', color: m.good ? '#16A34A' : '#DC2626', display: 'inline-block' }}>
+                          {m.good ? tx('Good', lang) : tx('Monitor', lang)}
                         </div>
                       </div>
                     ))}
@@ -301,7 +272,7 @@ export default function PublicDashboard() {
             {activeTab === 'categories' && (
               <div>
                 <div style={styles.chartCardWide}>
-                  <div style={styles.chartTitle}>{tx('📊 Category-wise Breakdown', lang)}</div>
+                  <div style={styles.chartTitle}>{tx(' Category-wise Breakdown', lang)}</div>
                   {stats.byCategory?.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={stats.byCategory} barSize={40}>
@@ -335,55 +306,27 @@ export default function PublicDashboard() {
             {activeTab === 'wards' && (
               <div>
                 {/* Summary Cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 24 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 24 }}>
                   {[
-                    { icon: '🗺️', label: 'Total Wards',      value: 26,                                                                       color: '#0F2557', bg: '#EEF2FF' },
-                    { icon: '🔴', label: 'Active Wards',     value: activeWards.length,                                                       color: '#DC2626', bg: '#FEE2E2' },
-                    { icon: '📍', label: 'Highest Complaints', value: activeWards[0]?.ward || 'N/A',                                          color: '#D97706', bg: '#FEF3C7' },
-                    { icon: '✅', label: 'Total Ward Cases',  value: totalWardComplaints,                                                      color: '#16A34A', bg: '#DCFCE7' },
+                    { label: 'Total Wards',      value: 26,                                                                       color: '#0F2557' },
+                    { label: 'Active Wards',     value: activeWards.length,                                                       color: '#DC2626' },
+                    { label: 'Highest Complaints', value: activeWards[0]?.ward || 'N/A',                                          color: '#D97706' },
+                    { label: 'Total Ward Cases',  value: totalWardComplaints,                                                      color: '#16A34A' },
                   ].map((s, i) => (
-                    <div key={i} style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(15,37,87,0.06)' }}>
-                      <div style={{ width: 40, height: 40, borderRadius: 10, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginBottom: 10 }}>{s.icon}</div>
-                      <div style={{ fontSize: 24, fontWeight: 700, color: s.color, marginBottom: 4 }}>{s.value}</div>
-                      <div style={{ fontSize: 12, color: '#6B7FA3' }}>{s.label}</div>
+                    <div key={i} style={{ ...styles.statCard, borderTop: `4px solid ${s.color}` }}>
+                      <div style={{ ...styles.statValue, color: s.color }}>{s.value}</div>
+                      <div style={styles.statLabel}>{s.label}</div>
                     </div>
                   ))}
                 </div>
 
-                {/* Heatmap */}
-                <div style={{ background: '#fff', borderRadius: 12, padding: 28, boxShadow: '0 2px 8px rgba(15,37,87,0.06)', marginBottom: 24 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                    <div style={styles.chartTitle}>🔥 Ward Complaint Heatmap</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#6B7FA3' }}>
-                      <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                        {['#F0F4FB','#DBEAFE','#93C5FD','#F59E0B','#EF4444','#7F1D1D'].map((c, i) => (
-                          <div key={i} style={{ width: 16, height: 16, borderRadius: 3, background: c }} />
-                        ))}
-                      </div>
-                      <span>Low → High</span>
-                    </div>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 8 }}>
-                    {ALL_WARDS.map(w => (
-                      <HeatCell
-                        key={w}
-                        ward={w}
-                        count={wardMap[`Ward ${w}`] || 0}
-                        max={maxCount}
-                      />
-                    ))}
-                  </div>
-                  <div style={{ marginTop: 16, fontSize: 12, color: '#9EB3CC', textAlign: 'center' }}>
-                    Click any ward cell to see details · Darker color = more complaints
-                  </div>
-                </div>
 
                 {/* Bar Chart */}
                 <div style={styles.chartCardWide}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                    <div style={styles.chartTitle}>📍 Ward-wise Complaint Distribution</div>
+                    <div style={styles.chartTitle}> Ward-wise Complaint Distribution</div>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      {[['count', '🔢 By Count'], ['alpha', '🔤 A-Z']].map(([key, label]) => (
+                      {[['count', ' By Count'], ['alpha', ' A-Z']].map(([key, label]) => (
                         <button key={key} onClick={() => setSortWard(key)}
                           style={{ padding: '5px 12px', borderRadius: 6, border: '1.5px solid #D8E2F0', fontSize: 12, fontWeight: 600, cursor: 'pointer', background: sortWard === key ? '#0F2557' : '#fff', color: sortWard === key ? '#fff' : '#6B7FA3' }}>
                           {label}
@@ -408,7 +351,7 @@ export default function PublicDashboard() {
                     </ResponsiveContainer>
                   ) : (
                     <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}>
-                      <div style={{ fontSize: 40, marginBottom: 12 }}>📍</div>
+                      <div style={{ fontSize: 40, marginBottom: 12 }}></div>
                       <div style={{ fontWeight: 600, marginBottom: 8 }}>No ward data yet</div>
                       <div style={{ fontSize: 13 }}>Submit complaints with a Ward selected to see data here</div>
                     </div>
@@ -418,7 +361,7 @@ export default function PublicDashboard() {
                 {/* Ward Cards Grid */}
                 {activeWards.length > 0 && (
                   <div style={{ marginTop: 20 }}>
-                    <div style={styles.chartTitle}>📋 Ward Details</div>
+                    <div style={styles.chartTitle}> Ward Details</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginTop: 12 }}>
                       {wardData.filter(w => w.complaints > 0).map((w, i) => {
                         const intensity = w.complaints / maxCount;
@@ -428,7 +371,7 @@ export default function PublicDashboard() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                               <div style={{ fontWeight: 700, color: '#0F2557', fontSize: 15 }}>{w.ward}</div>
                               <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 700, background: intensity > 0.6 ? '#FEE2E2' : intensity > 0.3 ? '#FEF3C7' : '#EEF2FF', color }}>
-                                {intensity > 0.6 ? '🔴 High' : intensity > 0.3 ? '🟡 Med' : '🟢 Low'}
+                                {intensity > 0.6 ? ' High' : intensity > 0.3 ? ' Med' : ' Low'}
                               </span>
                             </div>
                             <div style={{ fontSize: 28, fontWeight: 700, color, marginBottom: 4 }}>{w.complaints}</div>
@@ -448,11 +391,11 @@ export default function PublicDashboard() {
 
                 {/* All Wards Table */}
                 <div style={{ background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 2px 8px rgba(15,37,87,0.06)', marginTop: 24 }}>
-                  <div style={styles.chartTitle}>📊 All Wards Summary Table</div>
+                  <div style={styles.chartTitle}> All Wards Summary Table</div>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ background: '#F8FAFC' }}>
-                        {['Ward', 'Complaints', 'Share %', 'Activity Level', 'Progress'].map(h => (
+                        {['Ward', 'Zone', 'Complaints', 'Share %', 'Activity Level', 'Progress'].map(h => (
                           <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6B7FA3', textTransform: 'uppercase', letterSpacing: 0.5 }}>{h}</th>
                         ))}
                       </tr>
@@ -461,12 +404,13 @@ export default function PublicDashboard() {
                       {wardData.map((w, i) => {
                         const intensity = w.complaints / maxCount;
                         const color = intensity > 0.6 ? '#EF4444' : intensity > 0.3 ? '#F59E0B' : w.complaints > 0 ? '#0F2557' : '#D1D5DB';
-                        const level = intensity > 0.6 ? '🔴 High' : intensity > 0.3 ? '🟡 Medium' : w.complaints > 0 ? '🟢 Low' : '⚪ None';
+                        const level = intensity > 0.6 ? ' High' : intensity > 0.3 ? ' Medium' : w.complaints > 0 ? ' Low' : ' None';
                         return (
                           <tr key={i} style={{ borderBottom: '1px solid #F0F4FB' }}
                             onMouseEnter={e => e.currentTarget.style.background = '#FAFBFF'}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                             <td style={{ padding: '12px 14px', fontWeight: 700, color: '#0F2557', fontSize: 13 }}>{w.ward}</td>
+                            <td style={{ padding: '12px 14px', fontSize: 13, color: '#6B7FA3' }}>{w.zone}</td>
                             <td style={{ padding: '12px 14px', fontWeight: 700, color, fontSize: 15 }}>{w.complaints}</td>
                             <td style={{ padding: '12px 14px', fontSize: 13, color: '#6B7FA3' }}>
                               {totalWardComplaints ? ((w.complaints / totalWardComplaints) * 100).toFixed(1) : 0}%
@@ -490,7 +434,7 @@ export default function PublicDashboard() {
             {activeTab === 'trends' && (
               <div>
                 <div style={styles.chartCardWide}>
-                  <div style={styles.chartTitle}>{tx('📈 Complaint Volume Trend', lang)}</div>
+                  <div style={styles.chartTitle}>{tx(' Complaint Volume Trend', lang)}</div>
                   {trendData.length > 0 ? (
                     <>
                       <ResponsiveContainer width="100%" height={300}>
@@ -543,8 +487,8 @@ export default function PublicDashboard() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <button style={styles.ctaBtn}    onClick={() => navigate('/citizen/submit')}>{tx('📝 File a Complaint →', lang)}</button>
-            <button style={styles.ctaBtnSec} onClick={() => navigate('/citizen/track')} >{tx('🔍 Track Complaint', lang)}</button>
+            <button style={styles.ctaBtn}    onClick={() => navigate('/citizen/submit')}>{tx(' File a Complaint ', lang)}</button>
+            <button style={styles.ctaBtnSec} onClick={() => navigate('/citizen/track')} >{tx(' Track Complaint', lang)}</button>
           </div>
         </div>
       </div>
@@ -563,11 +507,11 @@ export default function PublicDashboard() {
             <div>
               <div style={{ fontWeight: 700, color: '#0F2557', marginBottom: 14 }}>{tx('Quick Links', lang)}</div>
               {[
-                { label: `🏠 ${tx('Home', lang)}`,                            path: '/' },
-                { label: `📝 ${tx('File a Complaint', lang)}`,                path: '/citizen/submit' },
-                { label: `🔍 ${tx('Track Your Complaint', lang)}`,            path: '/citizen/track' },
-                { label: `📊 ${tx('Public Dashboard', lang)}`,                path: '/public' },
-                { label: `🔐 ${tx('Login', lang)} / ${tx('Register', lang)}`, path: '/login' },
+                { label: ` ${tx('Home', lang)}`,                            path: '/' },
+                { label: ` ${tx('File a Complaint', lang)}`,                path: '/citizen/submit' },
+                { label: ` ${tx('Track Your Complaint', lang)}`,            path: '/citizen/track' },
+                { label: ` ${tx('Public Dashboard', lang)}`,                path: '/public' },
+                { label: ` ${tx('Login', lang)} / ${tx('Register', lang)}`, path: '/login' },
               ].map(l => (
                 <div key={l.path} style={{ fontSize: 13, color: '#6B7FA3', marginBottom: 8, cursor: 'pointer' }} onClick={() => navigate(l.path)}>
                   {l.label}
@@ -581,11 +525,11 @@ export default function PublicDashboard() {
               </div>
               <button style={{ padding: '10px 20px', background: '#0F2557', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', width: '100%' }}
                 onClick={() => navigate('/citizen/track')}>
-                {tx('🔍 Track a Complaint Now', lang)}
+                {tx(' Track a Complaint Now', lang)}
               </button>
               <div style={{ fontSize: 13, color: '#6B7FA3', lineHeight: 1.8, marginTop: 16 }}>
-                📧 gov.grievance.system@gmail.com<br />
-                📞 9594231594
+                 gov.grievance.system@gmail.com<br />
+                 9594231594
               </div>
             </div>
           </div>
@@ -630,19 +574,20 @@ const styles = {
   channelLabel:        { fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: 500 },
   otpNote:             { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '11px 14px', fontSize: 12, color: 'rgba(255,255,255,0.65)', textAlign: 'center', fontWeight: 500 },
   container:           { maxWidth: 1100, margin: '0 auto', padding: '40px' },
-  cardsRow:            { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20, marginBottom: 24 },
-  statCard:            { background: '#fff', borderRadius: 12, padding: 22, boxShadow: '0 2px 8px rgba(15,37,87,0.06)' },
-  statIcon:            { width: 42, height: 42, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 10 },
-  statValue:           { fontSize: 30, fontWeight: 700, marginBottom: 4 },
-  statLabel:           { fontSize: 13, color: '#6B7FA3' },
+  cardsRow:            { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 24 },
+  statCard:            { background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 2px 12px rgba(15,37,87,0.08)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 170, gap: 10, boxSizing: 'border-box' },
+  statValue:           { fontSize: 32, fontWeight: 700, marginBottom: 4, lineHeight: 1.05 },
+  statLabel:           { fontSize: 13, color: '#6B7FA3', textAlign: 'center', letterSpacing: 0.2 },
+  metricCard:          { background: '#F8FAFC', borderRadius: 12, padding: 22, textAlign: 'center', minHeight: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 10 },
+  metricValue:         { fontSize: 24, fontWeight: 700 },
+  metricLabel:         { fontSize: 12, color: '#6B7FA3', lineHeight: 1.5 },
   chartsRow:           { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 },
   chartCard:           { background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 2px 8px rgba(15,37,87,0.06)' },
   chartCardWide:       { background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 2px 8px rgba(15,37,87,0.06)', marginBottom: 20 },
   chartTitle:          { fontSize: 15, fontWeight: 700, color: '#0F2557', marginBottom: 16 },
   accountCard:         { background: '#fff', borderRadius: 12, padding: 28, boxShadow: '0 2px 8px rgba(15,37,87,0.06)' },
   accountTitle:        { fontFamily: "'Noto Serif',serif", fontSize: 20, fontWeight: 700, color: '#0F2557', marginBottom: 24 },
-  accountGrid:         { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 },
-  metricCard:          { background: '#F8FAFC', borderRadius: 10, padding: 20, textAlign: 'center' },
+  accountGrid:         { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20 },
   ctaBanner:           { background: 'linear-gradient(135deg,#0F2557,#1565C0)', padding: '40px 40px' },
   ctaBtn:              { padding: '12px 24px', borderRadius: 9, fontSize: 14, fontWeight: 700, cursor: 'pointer', border: 'none', background: '#E8620A', color: '#fff' },
   ctaBtnSec:           { padding: '12px 24px', borderRadius: 9, fontSize: 14, fontWeight: 600, cursor: 'pointer', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.3)' },

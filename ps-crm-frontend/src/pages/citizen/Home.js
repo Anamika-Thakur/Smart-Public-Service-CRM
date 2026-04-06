@@ -57,36 +57,36 @@ export default function Home() {
 
   const featureCards = [
     {
-      icon: '📝', color: '#E8620A',
+      icon: '', color: '#E8620A',
       title: T('File a Complaint'),
       desc: T('Submit via web, app, WhatsApp or SMS in any language. AI handles classification.'),
-      cta: T('Submit Now →'), action: () => navigate('/login'), badge: T('🔐 Login Required'),
+      cta: T('Submit Now '), action: () => navigate('/login'), badge: T(' Login Required'),
     },
     {
-      icon: '🔍', color: '#2563EB',
+      icon: '', color: '#2563EB',
       title: T('Track Your Complaint') || (lang === 'hi' ? 'शिकायत ट्रैक करें' : 'Track Your Complaint'),
       desc: T("Enter your PSCRM-ID to see real-time progress, SLA countdown and proof."),
-      cta: T('Track Status →'), action: () => navigate('/citizen/track'), badge: null,
+      cta: T('Track Status '), action: () => navigate('/citizen/track'), badge: null,
     },
     {
-      icon: '📊', color: '#16A34A',
+      icon: '', color: '#16A34A',
       title: T('Public Dashboard'),
       desc: T('Live ward rankings, complaint heatmaps and resolution analytics — no login needed.'),
-      cta: T('Open Dashboard →'), action: () => navigate('/public'), badge: null,
+      cta: T('Open Dashboard '), action: () => navigate('/public'), badge: null,
     },
     {
-      icon: 'ℹ️', color: '#7C3AED',
+      icon: '', color: '#7C3AED',
       title: lang === 'hi' ? 'यह कैसे काम करता है' : 'How It Works',
       desc: T('Understand the 6-step automated grievance lifecycle from submission to resolution.'),
-      cta: T('Learn More →'), action: () => navigate('/public'), badge: null,
+      cta: T('Learn More '), action: () => navigate('/public'), badge: null,
     },
   ];
 
   const steps = [
-    { step: '01', icon: '📝', title: T('Submit'),        desc: T('File your complaint online with details and photos') },
-    { step: '02', icon: '🧠', title: T('AI Processing'), desc: T('Auto-categorized and routed to the right department') },
-    { step: '03', icon: '🔄', title: T('Resolution'),    desc: T('Officer works on it with live SLA tracking') },
-    { step: '04', icon: '✅', title: T('Feedback'),      desc: T('Rate the resolution and provide your feedback') },
+    { step: '01', icon: '', title: T('Submit'),        desc: T('File your complaint online with details and photos') },
+    { step: '02', icon: '', title: T('AI Processing'), desc: T('Auto-categorized and routed to the right department') },
+    { step: '03', icon: '', title: T('Resolution'),    desc: T('Officer works on it with live SLA tracking') },
+    { step: '04', icon: '', title: T('Feedback'),      desc: T('Rate the resolution and provide your feedback') },
   ];
 
   return (
@@ -141,7 +141,7 @@ export default function Home() {
 
         <div style={{ display: 'flex', gap: 10 }}>
           <button style={styles.btnRegister} onClick={() => navigate('/register')}>
-            {T('Register / Login →')}
+            {T('Register / Login ')}
           </button>
         </div>
       </header>
@@ -165,10 +165,10 @@ export default function Home() {
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <button style={styles.btnHero} onClick={() => navigate('/login')}>
-                {T('📝 File a Complaint →')}
+                {T(' File a Complaint ')}
               </button>
               <button style={styles.btnHeroSec} onClick={() => navigate('/citizen/track')}>
-                {T('🔍 Track Your Complaint')}
+                {T(' Track Your Complaint')}
               </button>
             </div>
           </div>
@@ -193,7 +193,7 @@ export default function Home() {
               ))}
             </div>
             <div style={{ ...styles.hcNote, marginTop: 16 }}>
-              {realStats ? '' : lang === 'hi' ? '⏳ लाइव डेटा लोड हो रहा है...' : '⏳ Loading live data...'}
+              {realStats ? '' : lang === 'hi' ? ' लाइव डेटा लोड हो रहा है...' : ' Loading live data...'}
             </div>
           </div>
         </div>
@@ -265,7 +265,7 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: 48, marginBottom: 36 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                <div style={{ width: 38, height: 38, borderRadius: 8, background: '#E8620A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🏛️</div>
+                <div style={{ width: 38, height: 38, borderRadius: 8, background: '#E8620A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}></div>
                 <div style={{ fontWeight: 700, color: '#1A2B4A', fontSize: 20 }}>Smart<span style={{ color: '#E8620A' }}>CRM</span></div>
               </div>
               <div style={{ fontSize: 13, color: '#6B7FA3', lineHeight: 1.8 }}>
@@ -287,9 +287,9 @@ export default function Home() {
             </div>
             <div>
               <div style={styles.footerHeading}>{T('Contact')}</div>
-              <div style={styles.footerContact}>📧 grievance@pscrm.gov.in</div>
-              <div style={styles.footerContact}>📞 1800-111-555</div>
-              <div style={styles.footerContact}>📍 {lang === 'hi' ? 'नगर निगम, सिटी सेंटर' : 'Municipal Corporation, City Center'}</div>
+              <div style={styles.footerContact}> grievance@pscrm.gov.in</div>
+              <div style={styles.footerContact}> 1800-111-555</div>
+              <div style={styles.footerContact}> {lang === 'hi' ? 'नगर निगम, सिटी सेंटर' : 'Municipal Corporation, City Center'}</div>
             </div>
           </div>
           <div style={styles.footerBottom}>

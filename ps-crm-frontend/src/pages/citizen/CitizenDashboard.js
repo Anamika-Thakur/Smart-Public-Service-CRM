@@ -19,10 +19,10 @@ function ComplaintModal({ complaint: c, lang, onClose }) {
   };
 
   const timeline = [
-    { key: 'Submitted',   icon: '📝', done: true,                                                      date: c.createdAt },
-    { key: 'Assigned',    icon: '👮', done: !!c.assignedOfficer,                                       date: c.assignedAt },
-    { key: 'In Progress', icon: '🔄', done: ['In Progress','Resolved','Escalated'].includes(c.status), date: c.inProgressAt },
-    { key: 'Resolved',    icon: '✅', done: c.status === 'Resolved',                                   date: c.resolvedAt },
+    { key: 'Submitted',   icon: '', done: true,                                                      date: c.createdAt },
+    { key: 'Assigned',    icon: '', done: !!c.assignedOfficer,                                       date: c.assignedAt },
+    { key: 'In Progress', icon: '', done: ['In Progress','Resolved','Escalated'].includes(c.status), date: c.inProgressAt },
+    { key: 'Resolved',    icon: '', done: c.status === 'Resolved',                                   date: c.resolvedAt },
   ];
 
   const beforeImgs = c.images      || [];
@@ -55,14 +55,14 @@ function ComplaintModal({ complaint: c, lang, onClose }) {
               </span>
             </div>
           </div>
-          <button style={mStyles.closeBtn} onClick={onClose}>✕</button>
+          <button style={mStyles.closeBtn} onClick={onClose}></button>
         </div>
 
         <div style={mStyles.body}>
 
           {/* ── Progress Timeline ── */}
           <div style={mStyles.section}>
-            <div style={mStyles.sectionTitle}>📍 {T('Complaint Progress')}</div>
+            <div style={mStyles.sectionTitle}> {T('Complaint Progress')}</div>
             <div style={mStyles.timeline}>
               {timeline.map((step, i) => (
                 <div key={i} style={mStyles.timelineStep}>
@@ -70,7 +70,7 @@ function ComplaintModal({ complaint: c, lang, onClose }) {
                     <div style={{ ...mStyles.connector, background: timeline[i + 1].done ? '#16A34A' : '#D8E2F0' }} />
                   )}
                   <div style={{ ...mStyles.timelineDot, background: step.done ? '#16A34A' : '#D8E2F0', color: step.done ? '#fff' : '#9EB3CC' }}>
-                    {step.done ? '✓' : (i + 1)}
+                    {step.done ? '' : (i + 1)}
                   </div>
                   <div style={mStyles.timelineContent}>
                     <div style={{ ...mStyles.timelineLabel, color: step.done ? '#0F2557' : '#9EB3CC' }}>
@@ -89,7 +89,7 @@ function ComplaintModal({ complaint: c, lang, onClose }) {
 
           {/* ── Details ── */}
           <div style={mStyles.section}>
-            <div style={mStyles.sectionTitle}>📋 {T('Complaint Details')}</div>
+            <div style={mStyles.sectionTitle}> {T('Complaint Details')}</div>
             <div style={mStyles.detailGrid}>
               <div style={mStyles.detailItem}>
                 <div style={mStyles.detailLabel}>{T('Complaint ID')}</div>
@@ -101,16 +101,16 @@ function ComplaintModal({ complaint: c, lang, onClose }) {
               </div>
               <div style={mStyles.detailItem}>
                 <div style={mStyles.detailLabel}>{T('Location')}</div>
-                <div style={mStyles.detailValue}>📍 {c.location?.ward || 'N/A'}</div>
+                <div style={mStyles.detailValue}> {c.location?.ward || 'N/A'}</div>
               </div>
               <div style={mStyles.detailItem}>
                 <div style={mStyles.detailLabel}>{T('SLA Deadline')}</div>
-                <div style={mStyles.detailValue}>⏱️ {c.sla?.deadline ? new Date(c.sla.deadline).toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN') : 'N/A'}</div>
+                <div style={mStyles.detailValue}> {c.sla?.deadline ? new Date(c.sla.deadline).toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN') : 'N/A'}</div>
               </div>
               {c.assignedOfficer && (
                 <div style={mStyles.detailItem}>
                   <div style={mStyles.detailLabel}>{T('Assigned Officer')}</div>
-                  <div style={mStyles.detailValue}>👮 {c.assignedOfficer?.name || c.assignedOfficer}</div>
+                  <div style={mStyles.detailValue}> {c.assignedOfficer?.name || c.assignedOfficer}</div>
                 </div>
               )}
               {c.resolutionNote && (
@@ -129,21 +129,21 @@ function ComplaintModal({ complaint: c, lang, onClose }) {
           {/* ── Before / After Images ── */}
           {c.status === 'Resolved' && (
             <div style={mStyles.section}>
-              <div style={mStyles.sectionTitle}>📸 {T('Before & After')}</div>
+              <div style={mStyles.sectionTitle}> {T('Before & After')}</div>
               {beforeImgs.length === 0 && afterImgs.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '28px 0', color: '#9EB3CC', fontSize: 14 }}>
-                  📷 {lang === 'hi' ? 'अधिकारी ने अभी तक फ़ोटो अपलोड नहीं की है' : 'Officer has not uploaded resolution photos yet'}
+                   {lang === 'hi' ? 'अधिकारी ने अभी तक फ़ोटो अपलोड नहीं की है' : 'Officer has not uploaded resolution photos yet'}
                 </div>
               ) : (
                 <div style={mStyles.beforeAfterGrid}>
                   {/* Before */}
                   <div style={mStyles.imgCol}>
                     <div style={mStyles.imgColHeader}>
-                      <div style={{ ...mStyles.imgColBadge, background: '#FEE2E2', color: '#DC2626' }}>🔴 {T('Before')}</div>
+                      <div style={{ ...mStyles.imgColBadge, background: '#FEE2E2', color: '#DC2626' }}> {T('Before')}</div>
                       <span style={mStyles.imgCount}>{beforeImgs.length} {T('photo(s)')}</span>
                     </div>
                     {beforeImgs.length === 0
-                      ? <div style={mStyles.noImg}>📷 {T('No before photos')}</div>
+                      ? <div style={mStyles.noImg}> {T('No before photos')}</div>
                       : <div style={mStyles.imgGrid}>
                           {beforeImgs.map((img, i) => (
                             <img key={i} src={imgUrl(img)} alt={`before-${i}`} style={mStyles.thumb}
@@ -154,16 +154,16 @@ function ComplaintModal({ complaint: c, lang, onClose }) {
                     }
                   </div>
 
-                  <div style={mStyles.arrowDivider}>➜</div>
+                  <div style={mStyles.arrowDivider}></div>
 
                   {/* After */}
                   <div style={mStyles.imgCol}>
                     <div style={mStyles.imgColHeader}>
-                      <div style={{ ...mStyles.imgColBadge, background: '#DCFCE7', color: '#16A34A' }}>🟢 {T('After')}</div>
+                      <div style={{ ...mStyles.imgColBadge, background: '#DCFCE7', color: '#16A34A' }}> {T('After')}</div>
                       <span style={mStyles.imgCount}>{afterImgs.length} {T('photo(s)')}</span>
                     </div>
                     {afterImgs.length === 0
-                      ? <div style={mStyles.noImg}>📷 {T('No after photos')}</div>
+                      ? <div style={mStyles.noImg}> {T('No after photos')}</div>
                       : <div style={mStyles.imgGrid}>
                           {afterImgs.map((img, i) => (
                             <img key={i} src={imgUrl(img)} alt={`after-${i}`} style={mStyles.thumb}
@@ -185,7 +185,7 @@ function ComplaintModal({ complaint: c, lang, onClose }) {
       {lightbox && (
         <div style={mStyles.lightbox} onClick={() => setLightbox(null)}>
           <img src={lightbox} alt="fullsize" style={mStyles.lightboxImg} />
-          <div style={mStyles.lightboxClose}>✕</div>
+          <div style={mStyles.lightboxClose}></div>
         </div>
       )}
     </>
@@ -314,17 +314,17 @@ export default function CitizenDashboard() {
           <div style={styles.userAvatar}>{user?.name?.charAt(0).toUpperCase()}</div>
           <div style={styles.userName}>{user?.name}</div>
           <div style={styles.userEmail}>{user?.email}</div>
-          <div style={styles.citizenBadge}>👤 {T('Citizen')}</div>
+          <div style={styles.citizenBadge}> {T('Citizen')}</div>
         </div>
 
         <nav style={styles.nav}>
           <div style={styles.navLabel}>{T('MY ACCOUNT')}</div>
           {[
-            { icon: '📊', label: 'My Dashboard',     path: '/citizen/dashboard', active: true },
-            { icon: '📝', label: 'File Complaint',   path: '/citizen/submit' },
-            { icon: '🔍', label: 'Track Complaint',  path: '/citizen/track' },
-            { icon: '🌐', label: 'Public Dashboard', path: '/public' },
-            { icon: '🔔', label: 'Notifications',    path: '/notifications' },
+            { icon: '', label: 'My Dashboard',     path: '/citizen/dashboard', active: true },
+            { icon: '', label: 'File Complaint',   path: '/citizen/submit' },
+            { icon: '', label: 'Track Complaint',  path: '/citizen/track' },
+            { icon: '', label: 'Public Dashboard', path: '/public' },
+            { icon: '', label: 'Notifications',    path: '/notifications' },
           ].map((l, i) => (
             <div key={i} onClick={() => navigate(l.path)}
               style={{ ...styles.navLink, ...(l.active ? styles.navLinkActive : {}) }}>
@@ -336,7 +336,7 @@ export default function CitizenDashboard() {
 
         <div style={styles.sidebarBottom}>
           <div style={{ ...styles.navLink, color: 'rgba(255,255,255,0.4)' }} onClick={logout}>
-            <span style={{ fontSize: 18 }}>🚪</span>
+            <span style={{ fontSize: 18 }}></span>
             <span>{T('Logout')}</span>
           </div>
         </div>
@@ -348,8 +348,8 @@ export default function CitizenDashboard() {
           <div>
             <h1 style={styles.pageTitle}>
               {lang === 'hi'
-                ? `वापस आपका स्वागत है, ${user?.name?.split(' ')[0]}! 👋`
-                : `Welcome back, ${user?.name?.split(' ')[0]}! 👋`}
+                ? `वापस आपका स्वागत है, ${user?.name?.split(' ')[0]}! `
+                : `Hello, ${user?.name?.split(' ')[0]}! `}
             </h1>
             <p style={styles.pageSub}>
               {new Date().toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', {
@@ -358,21 +358,20 @@ export default function CitizenDashboard() {
             </p>
           </div>
           <button style={styles.btnNew} onClick={() => navigate('/citizen/submit')}>
-            ➕ {T('New Complaint')}
+             {T('New Complaint')}
           </button>
         </div>
 
         {/* Stats */}
         <div style={styles.statsRow}>
           {[
-            { icon: '📋', label: 'Total Filed', value: stats.total,      color: '#0F2557', bg: '#EEF2FF' },
-            { icon: '⏳', label: 'Pending',     value: stats.pending,    color: '#D97706', bg: '#FEF3C7' },
-            { icon: '🔄', label: 'In Progress', value: stats.inProgress, color: '#2563EB', bg: '#DBEAFE' },
-            { icon: '✅', label: 'Resolved',    value: stats.resolved,   color: '#16A34A', bg: '#DCFCE7' },
+            { label: 'Total Filed', value: stats.total,      color: '#0F2557' },
+            { label: 'Pending',     value: stats.pending,    color: '#D97706' },
+            { label: 'In Progress', value: stats.inProgress, color: '#2563EB' },
+            { label: 'Resolved',    value: stats.resolved,   color: '#16A34A' },
           ].map((s, i) => (
-            <div key={i} style={styles.statCard}
+            <div key={i} style={{ ...styles.statCard, borderTop: `4px solid ${s.color}` }}
               onClick={() => setFilter(s.label === 'Total Filed' ? 'All' : s.label)}>
-              <div style={{ ...styles.statIcon, background: s.bg }}>{s.icon}</div>
               <div style={{ ...styles.statValue, color: s.color }}>{s.value}</div>
               <div style={styles.statLabel}>{T(s.label)}</div>
             </div>
@@ -382,13 +381,13 @@ export default function CitizenDashboard() {
         {/* Quick Actions */}
         <div style={styles.quickActions}>
           {[
-            { icon: '📝', label: 'File a Complaint', sub: 'Report a new issue',       path: '/citizen/submit',    color: '#E8620A' },
-            { icon: '🔍', label: 'Track Status',     sub: 'Check complaint status',   path: '/citizen/track',     color: '#0F2557' },
-            { icon: '⭐', label: 'Give Feedback',    sub: 'Rate resolved complaints', path: '/citizen/dashboard', color: '#1B7A3E' },
-            { icon: '🌐', label: 'Public Report',    sub: 'View transparency data',   path: '/public',            color: '#1565C0' },
+            { label: 'File a Complaint', sub: 'Report a new issue',       path: '/citizen/submit',    color: '#E8620A' },
+            { label: 'Track Status',     sub: 'Check complaint status',   path: '/citizen/track',     color: '#0F2557' },
+            { label: 'Give Feedback',    sub: 'Rate resolved complaints', path: '/citizen/dashboard', color: '#1B7A3E' },
+            { label: 'Public Report',    sub: 'View transparency data',   path: '/public',            color: '#1565C0' },
           ].map((a, i) => (
             <div key={i} style={styles.actionCard} onClick={() => navigate(a.path)}>
-              <div style={{ ...styles.actionIcon, background: `${a.color}15`, color: a.color }}>{a.icon}</div>
+              <div style={{ ...styles.actionAccent, background: a.color }} />
               <div style={styles.actionLabel}>{T(a.label)}</div>
               <div style={styles.actionSub}>{T(a.sub)}</div>
             </div>
@@ -398,7 +397,7 @@ export default function CitizenDashboard() {
         {/* Complaints List */}
         <div style={styles.listCard}>
           <div style={styles.listHeader}>
-            <span style={styles.cardTitle}>📋 {T('My Complaints')}</span>
+            <span style={styles.cardTitle}> {T('My Complaints')}</span>
             <div style={{ display: 'flex', gap: 8 }}>
               {['All', 'Pending', 'In Progress', 'Resolved'].map(f => (
                 <button key={f} onClick={() => setFilter(f)}
@@ -410,10 +409,10 @@ export default function CitizenDashboard() {
           </div>
 
           {loading ? (
-            <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}>⏳ {T('Loading...')}</div>
+            <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}> {T('Loading...')}</div>
           ) : filtered.length === 0 ? (
             <div style={styles.emptyState}>
-              <div style={{ fontSize: 52, marginBottom: 14 }}>📭</div>
+              <div style={{ fontSize: 52, marginBottom: 14 }}></div>
               <div style={{ fontSize: 17, fontWeight: 700, color: '#0F2557', marginBottom: 8 }}>
                 {complaints.length === 0 ? T('No complaints yet') : `${T('No')} ${T(filter)} ${T('complaints')}`}
               </div>
@@ -424,7 +423,7 @@ export default function CitizenDashboard() {
               </p>
               {complaints.length === 0 && (
                 <button style={styles.btnNew} onClick={() => navigate('/citizen/submit')}>
-                  📝 {T('File First Complaint')}
+                   {T('File First Complaint')}
                 </button>
               )}
             </div>
@@ -440,10 +439,10 @@ export default function CitizenDashboard() {
                         {T(c.urgency)}
                       </span>
                       <span style={styles.metaDot}>·</span>
-                      <span style={styles.metaText}>📍 {c.location?.ward || 'N/A'}</span>
+                      <span style={styles.metaText}> {c.location?.ward || 'N/A'}</span>
                       <span style={styles.metaDot}>·</span>
                       <span style={styles.metaText}>
-                        📅 {new Date(c.createdAt).toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN')}
+                         {new Date(c.createdAt).toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN')}
                       </span>
                     </div>
                     <div style={styles.complaintDesc}>
@@ -459,17 +458,17 @@ export default function CitizenDashboard() {
                     </span>
                     <div style={styles.complaintActions}>
                       <button style={styles.btnTrack} onClick={() => handleTrack(c)}>
-                        🔍 {T('Track')}
+                         {T('Track')}
                       </button>
                       {c.status === 'Resolved' && (
                         <button style={styles.btnFeedback}
                           onClick={() => navigate(`/citizen/feedback/${c._id}`)}>
-                          ⭐ {T('Feedback')}
+                           {T('Feedback')}
                         </button>
                       )}
                     </div>
                     <div style={styles.slaInfo}>
-                      ⏱️ {T('SLA:')} {new Date(c.sla?.deadline).toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN')}
+                       {T('SLA:')} {new Date(c.sla?.deadline).toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN')}
                     </div>
                   </div>
                 </div>
@@ -504,16 +503,15 @@ const styles = {
   pageTitle:       { fontFamily: "'Noto Serif',serif", fontSize: 24, fontWeight: 700, color: '#0F2557' },
   pageSub:         { color: '#6B7FA3', fontSize: 13, marginTop: 4 },
   btnNew:          { padding: '10px 20px', background: '#E8620A', color: '#fff', border: 'none', borderRadius: 9, fontSize: 14, fontWeight: 700, cursor: 'pointer' },
-  statsRow:        { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 24 },
-  statCard:        { background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(15,37,87,0.06)', cursor: 'pointer' },
-  statIcon:        { width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginBottom: 10 },
-  statValue:       { fontSize: 28, fontWeight: 700, marginBottom: 4 },
-  statLabel:       { fontSize: 12, color: '#6B7FA3' },
-  quickActions:    { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 24 },
-  actionCard:      { background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(15,37,87,0.06)', cursor: 'pointer', textAlign: 'center' },
-  actionIcon:      { width: 48, height: 48, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, margin: '0 auto 12px' },
-  actionLabel:     { fontWeight: 700, fontSize: 14, color: '#0F2557', marginBottom: 4 },
-  actionSub:       { fontSize: 12, color: '#6B7FA3' },
+  statsRow:        { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 16, marginBottom: 24 },
+  statCard:        { background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 2px 14px rgba(15,37,87,0.08)', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 150, boxSizing: 'border-box' },
+  statValue:       { fontSize: 34, fontWeight: 700, marginBottom: 8, lineHeight: 1.05 },
+  statLabel:       { fontSize: 13, color: '#6B7FA3', letterSpacing: 0.3 },
+  quickActions:    { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 },
+  actionCard:      { background: '#fff', borderRadius: 16, padding: 22, boxShadow: '0 2px 14px rgba(15,37,87,0.08)', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 170, boxSizing: 'border-box', textAlign: 'left' },
+  actionAccent:    { width: 40, height: 4, borderRadius: 999, marginBottom: 18, alignSelf: 'center' },
+  actionLabel:     { fontWeight: 700, fontSize: 15, color: '#0F2557', marginBottom: 6, textAlign: 'center' },
+  actionSub:       { fontSize: 13, color: '#6B7FA3', lineHeight: 1.5, textAlign: 'center' },
   listCard:        { background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 2px 8px rgba(15,37,87,0.06)' },
   listHeader:      { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid #F0F4FB' },
   cardTitle:       { fontWeight: 700, fontSize: 16, color: '#0F2557' },

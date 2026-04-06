@@ -7,9 +7,9 @@ export default function Sidebar() {
   const { logout } = useAuth();
 
   const links = [
-    { path: '/dashboard', label: '📊 Dashboard' },
-    { path: '/complaints', label: '📋 Complaints' },
-    { path: '/submit', label: '➕ Submit Complaint' },
+    { path: '/dashboard', label: ' Dashboard' },
+    { path: '/complaints', label: ' Complaints' },
+    { path: '/submit', label: ' Submit Complaint' },
   ];
 
   return (
@@ -33,7 +33,7 @@ export default function Sidebar() {
         ))}
       </nav>
       <div style={styles.logoutBtn} onClick={logout}>
-        🚪 Logout
+         Logout
       </div>
     </div>
   );

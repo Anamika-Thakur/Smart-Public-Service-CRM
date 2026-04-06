@@ -20,17 +20,17 @@ function FeedbackSection({ complaintId }) {
 
   if (!feedback) return (
     <div style={{ marginTop: 12, padding: '12px 16px', background: '#FFFBEB', borderRadius: 8, border: '1px solid #FCD34D' }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 4 }}>⭐ CITIZEN FEEDBACK</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 4 }}> CITIZEN FEEDBACK</div>
       <div style={{ fontSize: 13, color: '#9EB3CC' }}>No feedback submitted yet</div>
     </div>
   );
 
   return (
     <div style={{ marginTop: 12, padding: '12px 16px', background: '#FFFBEB', borderRadius: 8, border: '1px solid #FCD34D' }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 8 }}>⭐ CITIZEN FEEDBACK</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 8 }}> CITIZEN FEEDBACK</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
         {[1,2,3,4,5].map(s => (
-          <span key={s} style={{ fontSize: 20, color: s <= feedback.rating ? '#F59E0B' : '#E5E7EB' }}>★</span>
+          <span key={s} style={{ fontSize: 20, color: s <= feedback.rating ? '#F59E0B' : '#E5E7EB' }}></span>
         ))}
         <span style={{ fontSize: 13, fontWeight: 700, color: '#0F2557' }}>{feedback.rating}/5</span>
         <span style={{
@@ -92,10 +92,10 @@ export default function AdminDashboard() {
   };
 
   const statusSteps = [
-    { key: 'Pending',     label: 'Submitted',   icon: '📝' },
-    { key: 'In Progress', label: 'In Progress', icon: '🔧' },
-    { key: 'Resolved',    label: 'Resolved',    icon: '✅' },
-    { key: 'Escalated',   label: 'Escalated',   icon: '🚨' },
+    { key: 'Pending',     label: 'Submitted',   icon: '' },
+    { key: 'In Progress', label: 'In Progress', icon: '' },
+    { key: 'Resolved',    label: 'Resolved',    icon: '' },
+    { key: 'Escalated',   label: 'Escalated',   icon: '' },
   ];
 
   const stepIndex = (status) => {
@@ -125,7 +125,7 @@ export default function AdminDashboard() {
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <button style={styles.btnRefresh} onClick={() => window.location.reload()}>
-              {tx('🔄 Refresh', lang)}
+              {tx(' Refresh', lang)}
             </button>
             <div style={styles.adminChip}>
               <div style={styles.chipAvatar}>{user?.name?.charAt(0)}</div>
@@ -136,24 +136,23 @@ export default function AdminDashboard() {
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '80px', color: '#6B7FA3', fontSize: 16 }}>
-            ⏳ {tx('Loading...', lang)}
+             {tx('Loading...', lang)}
           </div>
         ) : stats ? (
           <>
             {/* Overview Cards */}
-            <div style={styles.cards}>
+            <div style={{ ...styles.cards, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
               {[
-                { label: 'Total Complaints', value: stats.overview.total,      icon: '📋', color: '#0F2557', bg: '#EEF2FF' },
-                { label: 'Pending',          value: stats.overview.pending,    icon: '⏳', color: '#D97706', bg: '#FEF3C7' },
-                { label: 'In Progress',      value: stats.overview.inProgress, icon: '🔄', color: '#2563EB', bg: '#DBEAFE' },
-                { label: 'Resolved',         value: stats.overview.resolved,   icon: '✅', color: '#16A34A', bg: '#DCFCE7' },
+                { label: 'Total Complaints', value: stats.overview.total,      color: '#0F2557' },
+                { label: 'Pending',          value: stats.overview.pending,    color: '#D97706' },
+                { label: 'In Progress',      value: stats.overview.inProgress, color: '#2563EB' },
+                { label: 'Resolved',         value: stats.overview.resolved,   color: '#16A34A' },
               ].map((c, i) => (
-                <div key={i} style={styles.card}>
-                  <div style={{ ...styles.cardIcon, background: c.bg, color: c.color }}>{c.icon}</div>
+                <div key={i} style={{ ...styles.card, borderTop: `4px solid ${c.color}` }}>
                   <div style={{ ...styles.cardValue, color: c.color }}>{c.value}</div>
                   <div style={styles.cardLabel}>{tx(c.label, lang)}</div>
-                  <div style={{ ...styles.cardBar, background: c.bg }}>
-                    <div style={{ height: '100%', width: `${(c.value / (stats.overview.total || 1)) * 100}%`, background: c.color, borderRadius: 4 }} />
+                  <div style={{ height: 4, background: '#E8EEF8', borderRadius: 2, marginTop: 12, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${(c.value / (stats.overview.total || 1)) * 100}%`, background: c.color, borderRadius: 2 }} />
                   </div>
                 </div>
               ))}
@@ -162,7 +161,7 @@ export default function AdminDashboard() {
             {/* Charts Row 1 */}
             <div style={styles.chartsRow}>
               <div style={styles.chartCard}>
-                <div style={styles.chartTitle}>{tx('📊 Complaints by Category', lang)}</div>
+                <div style={styles.chartTitle}>{tx(' Complaints by Category', lang)}</div>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={stats.byCategory} barSize={32}>
                     <XAxis dataKey="_id" tick={{ fontSize: 12, fill: '#6B7FA3' }} />
@@ -174,7 +173,7 @@ export default function AdminDashboard() {
               </div>
 
               <div style={styles.chartCard}>
-                <div style={styles.chartTitle}>{tx('🎯 Complaints by Urgency', lang)}</div>
+                <div style={styles.chartTitle}>{tx(' Complaints by Urgency', lang)}</div>
                 <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie data={stats.byUrgency} dataKey="count" nameKey="_id"
@@ -191,7 +190,7 @@ export default function AdminDashboard() {
             {/* Charts Row 2 */}
             <div style={styles.chartsRow}>
               <div style={styles.chartCard}>
-                <div style={styles.chartTitle}>{tx('📈 Daily Trend (Last 7 Days)', lang)}</div>
+                <div style={styles.chartTitle}>{tx(' Daily Trend (Last 7 Days)', lang)}</div>
                 <ResponsiveContainer width="100%" height={220}>
                   <LineChart data={stats.dailyTrend}>
                     <XAxis dataKey="_id" tick={{ fontSize: 12, fill: '#6B7FA3' }} />
@@ -203,7 +202,7 @@ export default function AdminDashboard() {
               </div>
 
               <div style={styles.chartCard}>
-                <div style={styles.chartTitle}>{tx('📍 Complaints by Ward', lang)}</div>
+                <div style={styles.chartTitle}>{tx(' Complaints by Ward', lang)}</div>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={stats.byWard} layout="vertical" barSize={20}>
                     <XAxis type="number" tick={{ fontSize: 12, fill: '#6B7FA3' }} />
@@ -218,9 +217,9 @@ export default function AdminDashboard() {
             {/* Recent Complaints Table */}
             <div style={styles.tableCard}>
               <div style={{ ...styles.chartTitle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>{tx('🕐 Recent Complaints', lang)}</span>
+                <span>{tx(' Recent Complaints', lang)}</span>
                 <button style={styles.viewAllBtn} onClick={() => navigate('/admin/complaints')}>
-                  {tx('View All →', lang)}
+                  {tx('View All ', lang)}
                 </button>
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -251,7 +250,7 @@ export default function AdminDashboard() {
                       <td style={styles.td}>{c.citizen?.name}</td>
                       <td style={styles.td}>{new Date(c.createdAt).toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN')}</td>
                       <td style={styles.td}>
-                        <button style={styles.btnTrack} onClick={() => openTrack(c)}>🔍 Track</button>
+                        <button style={styles.btnTrack} onClick={() => openTrack(c)}> Track</button>
                       </td>
                     </tr>
                   ))}
@@ -273,20 +272,20 @@ export default function AdminDashboard() {
 
             <div style={modal.header}>
               <div>
-                <h2 style={modal.title}>🔍 Complaint Details</h2>
+                <h2 style={modal.title}> Complaint Details</h2>
                 <p style={modal.sub}>{d?.title}</p>
               </div>
-              <button style={modal.closeBtn} onClick={() => setTrackModal(null)}>✕</button>
+              <button style={modal.closeBtn} onClick={() => setTrackModal(null)}></button>
             </div>
 
             {trackLoading ? (
-              <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}>⏳ Loading details...</div>
+              <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}> Loading details...</div>
             ) : (
               <div style={modal.body}>
 
                 {/* Progress Timeline */}
                 <div style={modal.section}>
-                  <div style={modal.sectionTitle}>📍 Progress</div>
+                  <div style={modal.sectionTitle}> Progress</div>
                   <div style={modal.timeline}>
                     {statusSteps.map((step, idx) => {
                       const isEscalated = d?.status === 'Escalated';
@@ -304,7 +303,7 @@ export default function AdminDashboard() {
                               border: active ? `2px solid ${isEscalated ? '#DC2626' : '#16A34A'}` : '2px solid #E8EEF8',
                               boxShadow: active ? `0 0 0 4px ${isEscalated ? '#FEE2E2' : '#DCFCE7'}` : 'none',
                             }}>
-                              {done ? (active && isEscalated ? '🚨' : '✅') : step.icon}
+                              {done ? (active && isEscalated ? '' : '') : step.icon}
                             </div>
                             <div style={{ fontSize: 11, fontWeight: done ? 700 : 400, color: done ? '#0F2557' : '#9EB3CC', whiteSpace: 'nowrap' }}>
                               {step.label}
@@ -321,7 +320,7 @@ export default function AdminDashboard() {
 
                 {/* Info Grid */}
                 <div style={modal.section}>
-                  <div style={modal.sectionTitle}>📄 Complaint Info</div>
+                  <div style={modal.sectionTitle}> Complaint Info</div>
                   <div style={modal.grid}>
                     {[
                       { label: 'Complaint ID', value: d?._id?.slice(-8).toUpperCase() },
@@ -345,7 +344,7 @@ export default function AdminDashboard() {
                   {/* Description */}
                   {d?.description && (
                     <div style={{ marginTop: 12, padding: '12px 16px', background: '#F8FAFC', borderRadius: 8, border: '1px solid #E8EEF8' }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7FA3', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>📝 Description</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7FA3', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}> Description</div>
                       <div style={{ fontSize: 13, color: '#3A4E70', lineHeight: 1.6 }}>{d.description}</div>
                     </div>
                   )}
@@ -353,7 +352,7 @@ export default function AdminDashboard() {
                   {/* Resolution Note */}
                   {d?.resolution && (
                     <div style={{ marginTop: 12, padding: '12px 16px', background: '#F0FDF4', borderRadius: 8, borderLeft: '3px solid #16A34A' }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#16A34A', marginBottom: 4 }}>✅ Resolution Note</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#16A34A', marginBottom: 4 }}> Resolution Note</div>
                       <div style={{ fontSize: 13, color: '#1A3A2A' }}>{d.resolution}</div>
                     </div>
                   )}
@@ -366,16 +365,16 @@ export default function AdminDashboard() {
 
                 {/* Before & After Photos */}
                 <div style={modal.section}>
-                  <div style={modal.sectionTitle}>📸 Before & After Photos</div>
+                  <div style={modal.sectionTitle}> Before & After Photos</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
                     <div>
                       <div style={modal.photoHeader}>
-                        <span style={{ ...modal.photoBadge, background: '#FEE2E2', color: '#DC2626' }}>🔴 Before</span>
+                        <span style={{ ...modal.photoBadge, background: '#FEE2E2', color: '#DC2626' }}> Before</span>
                         <span style={modal.photoCount}>{beforeImgs.length} photo(s) · by citizen</span>
                       </div>
                       {beforeImgs.length === 0 ? (
-                        <div style={modal.emptyPhotos}>📷 No photos uploaded by citizen</div>
+                        <div style={modal.emptyPhotos}> No photos uploaded by citizen</div>
                       ) : (
                         <div style={modal.photoGrid}>
                           {beforeImgs.map((img, i) => (
@@ -390,12 +389,12 @@ export default function AdminDashboard() {
 
                     <div>
                       <div style={modal.photoHeader}>
-                        <span style={{ ...modal.photoBadge, background: '#DCFCE7', color: '#16A34A' }}>🟢 After</span>
+                        <span style={{ ...modal.photoBadge, background: '#DCFCE7', color: '#16A34A' }}> After</span>
                         <span style={modal.photoCount}>{afterImgs.length} photo(s) · by officer</span>
                       </div>
                       {afterImgs.length === 0 ? (
                         <div style={modal.emptyPhotos}>
-                          {d?.status === 'Resolved' ? '📷 Officer did not upload after photos' : '⏳ Complaint not yet resolved'}
+                          {d?.status === 'Resolved' ? ' Officer did not upload after photos' : ' Complaint not yet resolved'}
                         </div>
                       ) : (
                         <div style={modal.photoGrid}>
@@ -423,7 +422,7 @@ export default function AdminDashboard() {
           onClick={() => setLightbox(null)}>
           <img src={lightbox} alt="full" style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 12, boxShadow: '0 8px 40px rgba(0,0,0,0.6)' }} />
           <button style={{ position: 'absolute', top: 20, right: 24, background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', fontSize: 22, width: 44, height: 44, borderRadius: '50%', cursor: 'pointer' }}
-            onClick={() => setLightbox(null)}>✕</button>
+            onClick={() => setLightbox(null)}></button>
         </div>
       )}
     </div>

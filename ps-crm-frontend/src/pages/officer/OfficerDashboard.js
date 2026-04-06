@@ -15,16 +15,16 @@ function FeedbackSection({ complaintId, lang }) {
 
   if (!feedback) return (
     <div style={{ marginTop: 12, padding: '12px 16px', background: '#FFFBEB', borderRadius: 8, border: '1px solid #FCD34D' }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 4 }}>⭐ {lang === 'hi' ? 'नागरिक की प्रतिक्रिया' : 'CITIZEN FEEDBACK'}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 4 }}> {lang === 'hi' ? 'नागरिक की प्रतिक्रिया' : 'CITIZEN FEEDBACK'}</div>
       <div style={{ fontSize: 13, color: '#9EB3CC' }}>{lang === 'hi' ? 'अभी तक कोई प्रतिक्रिया नहीं' : 'No feedback submitted yet'}</div>
     </div>
   );
 
   return (
     <div style={{ marginTop: 12, padding: '12px 16px', background: '#FFFBEB', borderRadius: 8, border: '1px solid #FCD34D' }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 8 }}>⭐ {lang === 'hi' ? 'नागरिक की प्रतिक्रिया' : 'CITIZEN FEEDBACK'}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 8 }}> {lang === 'hi' ? 'नागरिक की प्रतिक्रिया' : 'CITIZEN FEEDBACK'}</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-        {[1,2,3,4,5].map(s => <span key={s} style={{ fontSize: 20, color: s <= feedback.rating ? '#F59E0B' : '#E5E7EB' }}>★</span>)}
+        {[1,2,3,4,5].map(s => <span key={s} style={{ fontSize: 20, color: s <= feedback.rating ? '#F59E0B' : '#E5E7EB' }}></span>)}
         <span style={{ fontSize: 13, fontWeight: 700, color: '#0F2557' }}>{feedback.rating}/5</span>
         <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700,
           background: feedback.sentiment === 'Positive' ? '#DCFCE7' : feedback.sentiment === 'Negative' ? '#FEE2E2' : '#EEF2FF',
@@ -126,10 +126,10 @@ export default function OfficerDashboard() {
   const vAfterImgs  = vd?.afterImages || [];
 
   const statusSteps = [
-    { key: 'Pending', label: 'Submitted', icon: '📝' },
-    { key: 'In Progress', label: 'In Progress', icon: '🔧' },
-    { key: 'Resolved', label: 'Resolved', icon: '✅' },
-    { key: 'Escalated', label: 'Escalated', icon: '🚨' },
+    { key: 'Pending', label: 'Submitted', icon: '' },
+    { key: 'In Progress', label: 'In Progress', icon: '' },
+    { key: 'Resolved', label: 'Resolved', icon: '' },
+    { key: 'Escalated', label: 'Escalated', icon: '' },
   ];
   const stepIndex = (s) => s === 'Escalated' ? 3 : ['Pending', 'In Progress', 'Resolved'].indexOf(s);
   const currentStep = vd ? stepIndex(vd.status) : 0;
@@ -143,22 +143,22 @@ export default function OfficerDashboard() {
       {/* Sidebar */}
       <div style={styles.sidebar}>
         <div style={styles.sidebarLogo} onClick={() => navigate('/')}>
-          <div style={styles.emblem}>🏛️</div>
+          <div style={styles.emblem}></div>
           <div><div style={styles.logoText}>PS-CRM</div><div style={styles.logoSub}>{T('Officer Portal')}</div></div>
         </div>
         <div style={styles.userCard}>
           <div style={styles.userAvatar}>{user?.name?.charAt(0).toUpperCase()}</div>
           <div style={styles.userName}>{user?.name}</div>
           <div style={styles.userEmail}>{user?.email}</div>
-          <div style={styles.officerBadge}>🧑‍💼 {T('Field Officer')}</div>
+          <div style={styles.officerBadge}>‍ {T('Field Officer')}</div>
         </div>
         <nav style={styles.nav}>
           <div style={styles.navLabel}>{T('MY WORK')}</div>
           {[
-            { icon: '📊', label: 'My Dashboard', path: '/officer/dashboard', active: true },
-            { icon: '📋', label: 'All Cases', path: null, action: () => { setFilter('All'); complaintsRef.current?.scrollIntoView({ behavior: 'smooth' }); } },
-            { icon: '🔔', label: 'Notifications', path: '/notifications' },
-            { icon: '🌐', label: 'Public Dashboard', path: '/public' },
+            { icon: '', label: 'My Dashboard', path: '/officer/dashboard', active: true },
+            { icon: '', label: 'All Cases', path: null, action: () => { setFilter('All'); complaintsRef.current?.scrollIntoView({ behavior: 'smooth' }); } },
+            { icon: '', label: 'Notifications', path: '/notifications' },
+            { icon: '', label: 'Public Dashboard', path: '/public' },
           ].map((l, i) => (
             <div key={i} onClick={() => l.action ? l.action() : navigate(l.path)}
               style={{ ...styles.navLink, ...(l.active ? styles.navLinkActive : {}) }}>
@@ -177,7 +177,7 @@ export default function OfficerDashboard() {
         </div>
         <div style={styles.sidebarBottom}>
           <div style={{ ...styles.navLink, color: 'rgba(255,255,255,0.4)' }} onClick={logout}>
-            <span style={{ fontSize: 18 }}>🚪</span><span>{T('Logout')}</span>
+            <span style={{ fontSize: 18 }}></span><span>{T('Logout')}</span>
           </div>
         </div>
       </div>
@@ -186,7 +186,7 @@ export default function OfficerDashboard() {
       <div style={styles.main}>
         <div style={styles.topbar}>
           <div>
-            <h1 style={styles.pageTitle}>{T('Officer Dashboard 🧑‍💼')}</h1>
+            <h1 style={styles.pageTitle}>{T('Officer Dashboard ‍')}</h1>
             <p style={styles.pageSub}>{new Date().toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
           </div>
           <div style={styles.adminChip}>
@@ -198,13 +198,12 @@ export default function OfficerDashboard() {
         {/* Stats */}
         <div style={styles.statsRow}>
           {[
-            { icon: '📋', label: 'Total Assigned', value: stats.total, color: '#0F2557', bg: '#EEF2FF' },
-            { icon: '⏳', label: 'Pending', value: stats.pending, color: '#D97706', bg: '#FEF3C7' },
-            { icon: '🔄', label: 'In Progress', value: stats.inProgress, color: '#2563EB', bg: '#DBEAFE' },
-            { icon: '✅', label: 'Resolved', value: stats.resolved, color: '#16A34A', bg: '#DCFCE7' },
+            { label: 'Total Assigned', value: stats.total, color: '#0F2557' },
+            { label: 'Pending', value: stats.pending, color: '#D97706' },
+            { label: 'In Progress', value: stats.inProgress, color: '#2563EB' },
+            { label: 'Resolved', value: stats.resolved, color: '#16A34A' },
           ].map((s, i) => (
-            <div key={i} style={styles.statCard}>
-              <div style={{ ...styles.statIcon, background: s.bg }}>{s.icon}</div>
+            <div key={i} style={{ ...styles.statCard, borderTop: `4px solid ${s.color}` }}>
               <div style={{ ...styles.statValue, color: s.color }}>{s.value}</div>
               <div style={styles.statLabel}>{T(s.label)}</div>
             </div>
@@ -214,7 +213,7 @@ export default function OfficerDashboard() {
         {/* Performance Bar */}
         <div style={styles.perfCard}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <span style={{ fontWeight: 700, color: '#0F2557', fontSize: 15 }}>{T('📈 My Resolution Rate')}</span>
+            <span style={{ fontWeight: 700, color: '#0F2557', fontSize: 15 }}>{T(' My Resolution Rate')}</span>
             <span style={{ fontWeight: 700, color: '#16A34A', fontSize: 20 }}>{stats.total ? Math.round((stats.resolved / stats.total) * 100) : 0}%</span>
           </div>
           <div style={styles.perfBg}><div style={{ ...styles.perfFill, width: `${stats.total ? Math.round((stats.resolved / stats.total) * 100) : 0}%` }} /></div>
@@ -228,7 +227,7 @@ export default function OfficerDashboard() {
         {/* Complaints Table */}
         <div style={styles.tableCard} ref={complaintsRef}>
           <div style={styles.tableHeader}>
-            <span style={styles.cardTitle}>{T('📋 Assigned Complaints')}</span>
+            <span style={styles.cardTitle}>{T(' Assigned Complaints')}</span>
             <div style={{ display: 'flex', gap: 8 }}>
               {['All', 'Pending', 'In Progress', 'Resolved', 'Escalated'].map(f => (
                 <button key={f} onClick={() => setFilter(f)} style={{ ...styles.filterBtn, ...(filter === f ? styles.filterBtnActive : {}) }}>{T(f)}</button>
@@ -236,10 +235,10 @@ export default function OfficerDashboard() {
             </div>
           </div>
 
-          {loading ? <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}>⏳ {T('Loading...')}</div>
+          {loading ? <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}> {T('Loading...')}</div>
           : filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
+              <div style={{ fontSize: 48, marginBottom: 12 }}></div>
               <div style={{ fontWeight: 600 }}>{T('No cases found')}</div>
             </div>
           ) : (
@@ -274,20 +273,20 @@ export default function OfficerDashboard() {
                       <td style={styles.td}><span style={{ ...styles.badge, background: statusColor[c.status]?.bg, color: statusColor[c.status]?.color }}>{T(c.status)}</span></td>
                       <td style={styles.td}>
                         <div style={{ fontSize: 13, fontWeight: 600, color: isOverdue ? '#DC2626' : '#0F2557' }}>
-                          {isOverdue ? '🚨 ' : '⏱️ '}{deadline.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN')}
+                          {isOverdue ? ' ' : ' '}{deadline.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN')}
                         </div>
                         {isOverdue && <div style={{ fontSize: 11, color: '#DC2626' }}>{T('OVERDUE')}</div>}
                       </td>
                       <td style={styles.td}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          <button style={styles.btnView} onClick={() => openView(c)}>🔍 {T('Details')}</button>
+                          <button style={styles.btnView} onClick={() => openView(c)}> {T('Details')}</button>
                           {c.status !== 'Resolved' && (
                             <>
-                              <button style={styles.btnInProgress} disabled={updating === c._id || c.status === 'In Progress'} onClick={() => updateStatus(c._id, 'In Progress')}>🔄 {T('Start')}</button>
-                              <button style={styles.btnResolve} disabled={updating === c._id} onClick={() => openModal(c)}>✅ {T('Resolve')}</button>
+                              <button style={styles.btnInProgress} disabled={updating === c._id || c.status === 'In Progress'} onClick={() => updateStatus(c._id, 'In Progress')}> {T('Start')}</button>
+                              <button style={styles.btnResolve} disabled={updating === c._id} onClick={() => openModal(c)}> {T('Resolve')}</button>
                             </>
                           )}
-                          {c.status === 'Resolved' && <span style={{ fontSize: 12, color: '#16A34A', fontWeight: 600 }}>✅ {T('Done')}</span>}
+                          {c.status === 'Resolved' && <span style={{ fontSize: 12, color: '#16A34A', fontWeight: 600 }}> {T('Done')}</span>}
                         </div>
                       </td>
                     </tr>
@@ -304,15 +303,15 @@ export default function OfficerDashboard() {
         <div style={mStyles.overlay} onClick={() => setViewModal(null)}>
           <div style={mStyles.box} onClick={e => e.stopPropagation()}>
             <div style={mStyles.header}>
-              <div><h2 style={mStyles.title}>🔍 {T('Complaint Details')}</h2><p style={mStyles.sub}>{vd?.title}</p></div>
-              <button style={mStyles.closeBtn} onClick={() => setViewModal(null)}>✕</button>
+              <div><h2 style={mStyles.title}> {T('Complaint Details')}</h2><p style={mStyles.sub}>{vd?.title}</p></div>
+              <button style={mStyles.closeBtn} onClick={() => setViewModal(null)}></button>
             </div>
-            {viewLoading ? <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}>⏳ {T('Loading...')}</div> : (
+            {viewLoading ? <div style={{ textAlign: 'center', padding: 60, color: '#6B7FA3' }}> {T('Loading...')}</div> : (
               <div style={mStyles.body}>
 
                 {/* Progress Timeline */}
                 <div style={mStyles.section}>
-                  <div style={mStyles.sectionTitle}>📍 {T('Progress')}</div>
+                  <div style={mStyles.sectionTitle}> {T('Progress')}</div>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     {statusSteps.map((step, idx) => {
                       const isEscalated = vd?.status === 'Escalated';
@@ -324,7 +323,7 @@ export default function OfficerDashboard() {
                         <div key={idx} style={{ display: 'flex', alignItems: 'center', flex: idx < 2 ? 1 : 'none' }}>
                           <div style={{ textAlign: 'center' }}>
                             <div style={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, margin: '0 auto 6px', background: done ? (active && isEscalated ? '#FEE2E2' : '#DCFCE7') : '#F0F4FB', border: active ? `2px solid ${isEscalated ? '#DC2626' : '#16A34A'}` : '2px solid #E8EEF8', boxShadow: active ? `0 0 0 4px ${isEscalated ? '#FEE2E2' : '#DCFCE7'}` : 'none' }}>
-                              {done ? (active && isEscalated ? '🚨' : '✅') : step.icon}
+                              {done ? (active && isEscalated ? '' : '') : step.icon}
                             </div>
                             <div style={{ fontSize: 11, fontWeight: done ? 700 : 400, color: done ? '#0F2557' : '#9EB3CC', whiteSpace: 'nowrap' }}>{T(step.label)}</div>
                           </div>
@@ -337,7 +336,7 @@ export default function OfficerDashboard() {
 
                 {/* Info Grid */}
                 <div style={mStyles.section}>
-                  <div style={mStyles.sectionTitle}>📄 {T('Complaint Info')}</div>
+                  <div style={mStyles.sectionTitle}> {T('Complaint Info')}</div>
                   <div style={mStyles.grid}>
                     {[
                       { label: 'Complaint ID', value: vd?._id?.slice(-8).toUpperCase() },
@@ -356,7 +355,7 @@ export default function OfficerDashboard() {
 
                   {/* Citizens Section (handles duplicates) */}
                   <div style={{ marginTop: 12, padding: '12px 16px', background: '#F0FBFF', borderRadius: 8, border: '1px solid #7DD3FC' }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0369A1', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>👥 {T('Citizen')}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0369A1', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}> {T('Citizen')}</div>
                     {vd?.isDuplicate ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {vd?.allCitizens?.map((citizen, idx) => (
@@ -366,7 +365,7 @@ export default function OfficerDashboard() {
                             {citizen?.phone && <div style={{ fontSize: 11, color: '#6B7FA3' }}>{citizen.phone}</div>}
                           </div>
                         ))}
-                        <div style={{ fontSize: 11, color: '#0369A1', fontStyle: 'italic', marginTop: 6 }}>⚠️ {T('Multiple citizens reported this issue from the same location')}</div>
+                        <div style={{ fontSize: 11, color: '#0369A1', fontStyle: 'italic', marginTop: 6 }}> {T('Multiple citizens reported this issue from the same location')}</div>
                       </div>
                     ) : (
                       <div>
@@ -379,20 +378,20 @@ export default function OfficerDashboard() {
 
                   {/* SLA Deadline */}
                   <div style={{ marginTop: 12, padding: '12px 16px', background: '#FEF3C7', borderRadius: 8, border: '1px solid #FBBF24' }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 4 }}>⏱️ {T('SLA Deadline')}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#D97706', marginBottom: 4 }}> {T('SLA Deadline')}</div>
                     <div style={{ fontSize: 13, color: '#3A4E70' }}>{vd?.sla?.deadline ? new Date(vd.sla.deadline).toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN') : 'N/A'}</div>
                   </div>
 
                   {/* Status */}
                   <div style={{ marginTop: 12, padding: '12px 16px', background: '#F3F4F6', borderRadius: 8, border: '1px solid #E5E7EB' }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7FA3', marginBottom: 4 }}>📊 {T('Current Status')}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7FA3', marginBottom: 4 }}> {T('Current Status')}</div>
                     <div style={{ fontSize: 13, color: '#0F2557', fontWeight: 600 }}>{T(vd?.status)}</div>
                   </div>
 
                   {/* Description */}
                   {vd?.description && (
                     <div style={{ marginTop: 12, padding: '12px 16px', background: '#F8FAFC', borderRadius: 8, border: '1px solid #E8EEF8' }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7FA3', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>📝 {T('Description')}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7FA3', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}> {T('Description')}</div>
                       <div style={{ fontSize: 13, color: '#3A4E70', lineHeight: 1.6 }}>{vd.description}</div>
                     </div>
                   )}
@@ -400,7 +399,7 @@ export default function OfficerDashboard() {
                   {/* Resolution Note */}
                   {vd?.resolution && (
                     <div style={{ marginTop: 12, padding: '12px 16px', background: '#F0FDF4', borderRadius: 8, borderLeft: '3px solid #16A34A' }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#16A34A', marginBottom: 4 }}>✅ {T('Resolution Note')}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#16A34A', marginBottom: 4 }}> {T('Resolution Note')}</div>
                       <div style={{ fontSize: 13, color: '#1A3A2A' }}>{vd.resolution}</div>
                     </div>
                   )}
@@ -411,14 +410,14 @@ export default function OfficerDashboard() {
 
                 {/* Before & After Photos */}
                 <div style={mStyles.section}>
-                  <div style={mStyles.sectionTitle}>📸 {T('Before & After Photos')}</div>
+                  <div style={mStyles.sectionTitle}> {T('Before & After Photos')}</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                     <div>
                       <div style={mStyles.photoHeader}>
-                        <span style={{ ...mStyles.photoBadge, background: '#FEE2E2', color: '#DC2626' }}>🔴 {T('Before')}</span>
+                        <span style={{ ...mStyles.photoBadge, background: '#FEE2E2', color: '#DC2626' }}> {T('Before')}</span>
                         <span style={mStyles.photoCount}>{vBeforeImgs.length} {T('photo(s)')} · {lang === 'hi' ? 'नागरिक द्वारा' : 'by citizen'}</span>
                       </div>
-                      {vBeforeImgs.length === 0 ? <div style={mStyles.emptyPhotos}>📷 {lang === 'hi' ? 'नागरिक ने कोई फ़ोटो नहीं लगाई' : 'No photos uploaded by citizen'}</div> : (
+                      {vBeforeImgs.length === 0 ? <div style={mStyles.emptyPhotos}> {lang === 'hi' ? 'नागरिक ने कोई फ़ोटो नहीं लगाई' : 'No photos uploaded by citizen'}</div> : (
                         <div style={mStyles.photoGrid}>
                           {vBeforeImgs.map((img, i) => <img key={i} src={imgUrl(img)} alt={`b${i}`} style={mStyles.photoThumb} onClick={() => setLightbox(imgUrl(img))} onError={e => e.target.style.display = 'none'} />)}
                         </div>
@@ -426,11 +425,11 @@ export default function OfficerDashboard() {
                     </div>
                     <div>
                       <div style={mStyles.photoHeader}>
-                        <span style={{ ...mStyles.photoBadge, background: '#DCFCE7', color: '#16A34A' }}>🟢 {T('After')}</span>
+                        <span style={{ ...mStyles.photoBadge, background: '#DCFCE7', color: '#16A34A' }}> {T('After')}</span>
                         <span style={mStyles.photoCount}>{vAfterImgs.length} {T('photo(s)')} · {lang === 'hi' ? 'अधिकारी द्वारा' : 'by officer'}</span>
                       </div>
                       {vAfterImgs.length === 0 ? (
-                        <div style={mStyles.emptyPhotos}>{vd?.status === 'Resolved' ? (lang === 'hi' ? 'अधिकारी ने बाद की फ़ोटो नहीं लगाई' : 'Officer did not upload after photos') : (lang === 'hi' ? '⏳ शिकायत अभी हल नहीं हुई' : '⏳ Not yet resolved')}</div>
+                        <div style={mStyles.emptyPhotos}>{vd?.status === 'Resolved' ? (lang === 'hi' ? 'अधिकारी ने बाद की फ़ोटो नहीं लगाई' : 'Officer did not upload after photos') : (lang === 'hi' ? ' शिकायत अभी हल नहीं हुई' : ' Not yet resolved')}</div>
                       ) : (
                         <div style={mStyles.photoGrid}>
                           {vAfterImgs.map((img, i) => <img key={i} src={imgUrl(img)} alt={`a${i}`} style={mStyles.photoThumb} onClick={() => setLightbox(imgUrl(img))} onError={e => e.target.style.display = 'none'} />)}
@@ -451,8 +450,8 @@ export default function OfficerDashboard() {
         <div style={styles.overlay}>
           <div style={styles.modal}>
             <div style={styles.modalHeader}>
-              <h2 style={styles.modalTitle}>✅ {T('Resolve Complaint')}</h2>
-              <button style={styles.closeBtn} onClick={() => setSelected(null)}>✕</button>
+              <h2 style={styles.modalTitle}> {T('Resolve Complaint')}</h2>
+              <button style={styles.closeBtn} onClick={() => setSelected(null)}></button>
             </div>
             <div style={styles.modalInfo}>
               <div style={{ fontWeight: 700, color: '#0F2557', fontSize: 15, marginBottom: 4 }}>{selected.title}</div>
@@ -465,15 +464,15 @@ export default function OfficerDashboard() {
                 value={resolution} onChange={e => setResolution(e.target.value)} />
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.label}>📸 {T('Before & After Photos')}</label>
+              <label style={styles.label}> {T('Before & After Photos')}</label>
               <div style={imgStyles.twoCol}>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#3A4E70' }}>🔴 {T('Before')} <span style={{ fontSize: 11, color: '#9EB3CC', fontWeight: 400 }}>({lang === 'hi' ? 'नागरिक द्वारा' : 'by citizen'})</span></span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#3A4E70' }}> {T('Before')} <span style={{ fontSize: 11, color: '#9EB3CC', fontWeight: 400 }}>({lang === 'hi' ? 'नागरिक द्वारा' : 'by citizen'})</span></span>
                     <span style={{ fontSize: 11, color: '#9EB3CC' }}>{citizenImgs.length} {T('photo(s)')}</span>
                   </div>
                   {citizenImgs.length === 0 ? (
-                    <div style={{ background: '#F8FAFC', borderRadius: 8, padding: '18px 0', textAlign: 'center', color: '#9EB3CC', fontSize: 13 }}>📷 {lang === 'hi' ? 'नागरिक ने कोई फ़ोटो नहीं लगाई' : 'No photos uploaded by citizen'}</div>
+                    <div style={{ background: '#F8FAFC', borderRadius: 8, padding: '18px 0', textAlign: 'center', color: '#9EB3CC', fontSize: 13 }}> {lang === 'hi' ? 'नागरिक ने कोई फ़ोटो नहीं लगाई' : 'No photos uploaded by citizen'}</div>
                   ) : (
                     <div style={imgStyles.thumbRow}>
                       {citizenImgs.map((img, i) => <div key={i} style={imgStyles.thumbWrap}><img src={imgUrl(img)} alt={`b${i}`} style={imgStyles.thumb} onError={e => e.target.style.display = 'none'} /></div>)}
@@ -483,23 +482,23 @@ export default function OfficerDashboard() {
                 <div style={imgStyles.divider} />
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#3A4E70' }}>🟢 {T('After')} <span style={{ fontSize: 11, color: '#9EB3CC', fontWeight: 400 }}>({lang === 'hi' ? 'आपके द्वारा' : 'upload by you'})</span></span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#3A4E70' }}> {T('After')} <span style={{ fontSize: 11, color: '#9EB3CC', fontWeight: 400 }}>({lang === 'hi' ? 'आपके द्वारा' : 'upload by you'})</span></span>
                     <span style={{ fontSize: 11, color: '#9EB3CC' }}>{afterImgs.length} {T('photo(s)')}</span>
                   </div>
                   {afterImgs.length > 0 && (
                     <div style={imgStyles.thumbRow}>
-                      {afterImgs.map((img, i) => <div key={i} style={imgStyles.thumbWrap}><img src={img.preview} alt={`a${i}`} style={imgStyles.thumb} /><button style={imgStyles.removeBtn} onClick={() => removeAfterImg(i)}>✕</button></div>)}
+                      {afterImgs.map((img, i) => <div key={i} style={imgStyles.thumbWrap}><img src={img.preview} alt={`a${i}`} style={imgStyles.thumb} /><button style={imgStyles.removeBtn} onClick={() => removeAfterImg(i)}></button></div>)}
                     </div>
                   )}
-                  <button style={{ ...imgStyles.uploadBtn, borderColor: '#16A34A', color: '#16A34A', background: '#DCFCE7' }} onClick={() => afterInputRef.current.click()}>📷 {T('Add Photos')}</button>
+                  <button style={{ ...imgStyles.uploadBtn, borderColor: '#16A34A', color: '#16A34A', background: '#DCFCE7' }} onClick={() => afterInputRef.current.click()}> {T('Add Photos')}</button>
                   <input ref={afterInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleImgPick} />
                 </div>
               </div>
-              <div style={{ fontSize: 11, color: '#9EB3CC', marginTop: 8 }}>💡 {lang === 'hi' ? 'नागरिक इन फ़ोटो को अपने ट्रैक पेज पर देख सकेगा' : 'Citizen will see these photos on their complaint tracking page'}</div>
+              <div style={{ fontSize: 11, color: '#9EB3CC', marginTop: 8 }}> {lang === 'hi' ? 'नागरिक इन फ़ोटो को अपने ट्रैक पेज पर देख सकेगा' : 'Citizen will see these photos on their complaint tracking page'}</div>
             </div>
             <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
               <button style={{ ...styles.btnResolve, flex: 1, padding: 12, fontSize: 15, opacity: (!resolution.trim() || resolving) ? 0.6 : 1 }} onClick={handleResolve} disabled={resolving || !resolution.trim()}>
-                {resolving ? `⏳ ${T('Resolving...')}` : `✅ ${T('Mark as Resolved')}`}
+                {resolving ? ` ${T('Resolving...')}` : ` ${T('Mark as Resolved')}`}
               </button>
               <button style={{ ...styles.btnCancel, flex: 1 }} onClick={() => setSelected(null)}>{T('Cancel')}</button>
             </div>
@@ -511,7 +510,7 @@ export default function OfficerDashboard() {
       {lightbox && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setLightbox(null)}>
           <img src={lightbox} alt="full" style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 12, boxShadow: '0 8px 40px rgba(0,0,0,0.6)' }} />
-          <button style={{ position: 'absolute', top: 20, right: 24, background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', fontSize: 22, width: 44, height: 44, borderRadius: '50%', cursor: 'pointer' }} onClick={() => setLightbox(null)}>✕</button>
+          <button style={{ position: 'absolute', top: 20, right: 24, background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', fontSize: 22, width: 44, height: 44, borderRadius: '50%', cursor: 'pointer' }} onClick={() => setLightbox(null)}></button>
         </div>
       )}
     </div>
@@ -572,9 +571,8 @@ const styles = {
   pageSub: { color: '#6B7FA3', fontSize: 13, marginTop: 4 },
   adminChip: { display: 'flex', alignItems: 'center', gap: 8, background: '#fff', padding: '6px 14px', borderRadius: 20, boxShadow: '0 2px 8px rgba(15,37,87,0.08)' },
   chipAvatar: { width: 28, height: 28, borderRadius: '50%', background: '#1565C0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 },
-  statsRow: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 },
-  statCard: { background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(15,37,87,0.06)' },
-  statIcon: { width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginBottom: 10 },
+  statsRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 },
+  statCard: { background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(15,37,87,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
   statValue: { fontSize: 28, fontWeight: 700, marginBottom: 4 },
   statLabel: { fontSize: 12, color: '#6B7FA3' },
   perfCard: { background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(15,37,87,0.06)', marginBottom: 20 },

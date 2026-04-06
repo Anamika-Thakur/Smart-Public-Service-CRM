@@ -131,7 +131,7 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
     const events = [];
     if (c.createdAt) {
       events.push({
-        icon: '📝', label: 'Complaint Filed',
+        icon: '', label: 'Complaint Filed',
         desc: lang === 'hi'
           ? `${c.citizen?.name || 'नागरिक'} द्वारा शिकायत दर्ज की गई`
           : `Complaint submitted by ${c.citizen?.name || 'Citizen'}`,
@@ -140,7 +140,7 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
     }
     if (c.assignedTo) {
       events.push({
-        icon: '👮', label: 'Officer Assigned',
+        icon: '', label: 'Officer Assigned',
         desc: lang === 'hi'
           ? 'समीक्षा और कार्रवाई के लिए अधिकारी को सौंपा गया'
           : 'Assigned to officer for review and action',
@@ -149,7 +149,7 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
     }
     if (c.status === 'In Progress' || c.status === 'Resolved') {
       events.push({
-        icon: '🔄', label: 'Work In Progress',
+        icon: '', label: 'Work In Progress',
         desc: lang === 'hi'
           ? 'अधिकारी ने शिकायत पर काम शुरू कर दिया है'
           : 'Officer has started working on the complaint',
@@ -158,14 +158,14 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
     }
     if (c.status === 'Resolved') {
       events.push({
-        icon: '✅', label: 'Complaint Resolved',
+        icon: '', label: 'Complaint Resolved',
         desc: c.resolution || (lang === 'hi' ? 'विभाग द्वारा समस्या हल कर दी गई है' : 'Issue has been resolved by the department'),
         time: c.updatedAt, color: '#16A34A', done: true,
       });
     }
     if (c.status === 'Escalated') {
       events.push({
-        icon: '🚨', label: 'Escalated',
+        icon: '', label: 'Escalated',
         desc: lang === 'hi'
           ? 'SLA समय सीमा पार हो गई — पर्यवेक्षक को एस्केलेट किया गया'
           : 'SLA deadline exceeded — escalated to supervisor',
@@ -174,7 +174,7 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
     }
     if (c.status !== 'Resolved' && c.status !== 'Escalated') {
       events.push({
-        icon: '⏳', label: 'Awaiting Resolution',
+        icon: '', label: 'Awaiting Resolution',
         desc: lang === 'hi'
           ? 'नियुक्त अधिकारी द्वारा बंद होने की प्रतीक्षा'
           : 'Pending closure by the assigned officer',
@@ -201,7 +201,7 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
       {lightbox && (
         <div style={styles.lightboxOverlay} onClick={() => setLightbox(null)}>
           <div style={styles.lightboxBox} onClick={e => e.stopPropagation()}>
-            <button style={styles.lightboxClose} onClick={() => setLightbox(null)}>✕</button>
+            <button style={styles.lightboxClose} onClick={() => setLightbox(null)}></button>
             <img src={lightbox.src} alt={lightbox.name} style={styles.lightboxImg} />
             <div style={styles.lightboxCaption}>{lightbox.name}</div>
           </div>
@@ -228,7 +228,7 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
         </div>
         <div style={{ display: 'flex', gap: 9 }}>
           <button style={styles.btnOutline} onClick={() => navigate('/citizen/submit')}>
-            {tx('📝 File a Complaint', lang)}
+            {tx(' File a Complaint', lang)}
           </button>
         </div>
       </header>
@@ -240,9 +240,9 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
             onClick={() => navigate('/citizen')}
             className="no-print"
           >
-            ← {tx('Back', lang)}
+             {tx('Back', lang)}
           </button>
-          <h1 style={styles.pageTitle}>{tx('🔍 Track Your Complaint', lang)}</h1>
+          <h1 style={styles.pageTitle}>{tx(' Track Your Complaint', lang)}</h1>
           <p style={styles.pageSub}>{tx('Enter your complaint ID to see real-time status, photos, and progress report', lang)}</p>
         </div>
 
@@ -271,16 +271,16 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
               />
             </div>
             <button style={styles.btnTrack} onClick={handleTrack} disabled={loading}>
-              {loading ? tx('⏳ Searching...', lang) : tx('🔍 Track', lang)}
+              {loading ? tx(' Searching...', lang) : tx(' Track', lang)}
             </button>
           </div>
           {complaint && userEmail && (
             <button style={{ ...styles.btnOrange, width: '100%', marginTop: 12, padding: '10px 0' }} onClick={handleSendToEmail}>
-              {tx('📧 Send to Email', lang)}
+              {tx(' Send to Email', lang)}
             </button>
           )}
           <div style={{ fontSize: 12, color: '#9BADC0', marginTop: 10 }}>
-            💡 {lang === 'hi'
+             {lang === 'hi'
               ? 'शिकायत आईडी के आधार पर केवल आपकी शिकायत ट्रैक की जाएगी।'
               : 'Complaint tracking is now based solely on the complaint ID.'}
           </div>
@@ -304,13 +304,13 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
               </div>
               <div style={{ display: 'flex', gap: 12 }}>
                 <button style={styles.btnPrint} onClick={handleEmailDuplicate}>
-                  {tx('📧 Report Duplicate', lang)}
+                  {tx(' Report Duplicate', lang)}
                 </button>
                 <button style={styles.btnPrint} onClick={handleEmail}>
-                  {tx('📧 Email Report', lang)}
+                  {tx(' Email Report', lang)}
                 </button>
                 <button style={styles.btnPrint} onClick={handlePrint}>
-                  {tx('🖨️ Print / Save Report', lang)}
+                  {tx(' Print / Save Report', lang)}
                 </button>
               </div>
             </div>
@@ -321,7 +321,7 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
               <div>
                 {/* Complaint Details Card */}
                 <div style={styles.card}>
-                  <div style={styles.cardTitle}>{tx('📋 Complaint Details', lang)}</div>
+                  <div style={styles.cardTitle}>{tx(' Complaint Details', lang)}</div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, gap: 12 }}>
                     <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0F2557', margin: 0 }}>{complaint.title}</h2>
@@ -339,7 +339,7 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
                             <div style={{ ...styles.stepperLine, background: i <= currentStep ? '#1B7A3E' : '#D8E2F0' }} />
                           )}
                           <div style={{ ...styles.stepperDot, background: i <= currentStep ? '#1B7A3E' : '#D8E2F0', color: i <= currentStep ? '#fff' : '#6B7FA3', boxShadow: i === currentStep ? '0 0 0 4px rgba(27,122,62,0.15)' : 'none' }}>
-                            {i < currentStep ? '✓' : i + 1}
+                            {i < currentStep ? '' : i + 1}
                           </div>
                           <div style={{ fontSize: 11, color: i <= currentStep ? '#1B7A3E' : '#9BADC0', fontWeight: i === currentStep ? 700 : 400, marginTop: 8, textAlign: 'center' }}>
                             {tx(s, lang)}
@@ -388,7 +388,7 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
                   {/* Resolution Note */}
                   {complaint.resolution && (
                     <div style={{ ...styles.descBox, background: '#DCFCE7', borderColor: '#86EFAC', marginTop: 12 }}>
-                      <div style={{ ...styles.descLabel, color: '#16A34A' }}>{tx('✅ Resolution Note', lang)}</div>
+                      <div style={{ ...styles.descLabel, color: '#16A34A' }}>{tx(' Resolution Note', lang)}</div>
                       <div style={styles.descText}>{complaint.resolution}</div>
                     </div>
                   )}
@@ -398,7 +398,7 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
                 {complaint.images?.length > 0 && (
                   <div style={{ ...styles.card, marginTop: 20 }}>
                     <div style={styles.cardTitle}>
-                      {tx('📸 Evidence Photos', lang)} ({complaint.images.length})
+                      {tx(' Evidence Photos', lang)} ({complaint.images.length})
                     </div>
                     <div style={styles.photoGrid}>
                       {complaint.images.map((img, i) => (
@@ -406,20 +406,20 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
                           <img src={img.data} alt={img.name || `Evidence ${i + 1}`} style={styles.photoImg} />
                           <div style={styles.photoFooter}>
                             <span style={styles.photoName}>{img.name?.slice(0, 20) || `Photo ${i + 1}`}</span>
-                            <span style={styles.photoView}>🔍 {lang === 'hi' ? 'देखें' : 'View'}</span>
+                            <span style={styles.photoView}> {lang === 'hi' ? 'देखें' : 'View'}</span>
                           </div>
                         </div>
                       ))}
                     </div>
                     <div style={{ fontSize: 12, color: '#6B7FA3', marginTop: 12 }}>
-                      {tx('💡 Click any photo to view full size', lang)}
+                      {tx(' Click any photo to view full size', lang)}
                     </div>
                   </div>
                 )}
 
                 {/* Progress Timeline */}
                 <div style={{ ...styles.card, marginTop: 20 }}>
-                  <div style={styles.cardTitle}>{tx('📅 Progress Timeline', lang)}</div>
+                  <div style={styles.cardTitle}>{tx(' Progress Timeline', lang)}</div>
                   <div style={styles.timeline}>
                     {buildTimeline(complaint).map((ev, i, arr) => (
                       <div key={i} style={styles.timelineRow}>
@@ -452,7 +452,7 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
               <div>
                 {/* Citizen Info */}
                 <div style={styles.card}>
-                  <div style={styles.cardTitle}>{tx('👤 Citizen Info', lang)}</div>
+                  <div style={styles.cardTitle}>{tx(' Citizen Info', lang)}</div>
                   {[
                     { k: lang === 'hi' ? 'नाम' : 'Name',   v: complaint.citizen?.name },
                     { k: lang === 'hi' ? 'ईमेल' : 'Email', v: complaint.citizen?.email },
@@ -467,7 +467,7 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
 
                 {/* SLA Status */}
                 <div style={{ ...styles.card, marginTop: 16 }}>
-                  <div style={styles.cardTitle}>{tx('⏱️ SLA Status', lang)}</div>
+                  <div style={styles.cardTitle}>{tx(' SLA Status', lang)}</div>
                   {(() => {
                     const deadline = new Date(complaint.sla?.deadline);
                     const now = new Date();
@@ -478,7 +478,7 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
                     return (
                       <div style={{ textAlign: 'center', padding: '20px 0' }}>
                         <div style={{ fontSize: 36, fontWeight: 700, color: isResolved ? '#16A34A' : isOverdue ? '#DC2626' : '#0F2557', marginBottom: 8 }}>
-                          {isResolved ? '✅' : isOverdue ? tx('OVERDUE', lang) : `${hoursLeft}h`}
+                          {isResolved ? '' : isOverdue ? tx('OVERDUE', lang) : `${hoursLeft}h`}
                         </div>
                         <div style={{ fontSize: 13, color: '#6B7FA3' }}>
                           {isResolved
@@ -489,10 +489,10 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
                         </div>
                         <div style={{ marginTop: 12, padding: '8px 16px', borderRadius: 8, background: isResolved ? '#DCFCE7' : isOverdue ? '#FEE2E2' : '#EEF2FF', color: isResolved ? '#16A34A' : isOverdue ? '#DC2626' : '#0F2557', fontSize: 12, fontWeight: 700 }}>
                           {isResolved
-                            ? tx('🎉 Closed on time', lang)
+                            ? tx(' Closed on time', lang)
                             : isOverdue
-                              ? tx('🚨 Escalated to supervisor', lang)
-                              : tx('✅ Within SLA timeline', lang)}
+                              ? tx(' Escalated to supervisor', lang)
+                              : tx(' Within SLA timeline', lang)}
                         </div>
                       </div>
                     );
@@ -501,12 +501,12 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
 
                 {/* Quick Stats */}
                 <div style={{ ...styles.card, marginTop: 16 }}>
-                  <div style={styles.cardTitle}>{tx('📊 Quick Stats', lang)}</div>
+                  <div style={styles.cardTitle}>{tx(' Quick Stats', lang)}</div>
                   {[
-                    { icon: '📅', label: tx('Days Open', lang),        value: Math.floor((new Date() - new Date(complaint.createdAt)) / (1000 * 60 * 60 * 24)) },
-                    { icon: '📸', label: tx('Photos Attached', lang),  value: complaint.images?.length || 0 },
-                    { icon: '🏷️', label: tx('Priority', lang),         value: tx(complaint.urgency || 'Low', lang) },
-                    { icon: '🗂️', label: tx('Department', lang),       value: tx(complaint.category || 'Other', lang) },
+                    { icon: '', label: tx('Days Open', lang),        value: Math.floor((new Date() - new Date(complaint.createdAt)) / (1000 * 60 * 60 * 24)) },
+                    { icon: '', label: tx('Photos Attached', lang),  value: complaint.images?.length || 0 },
+                    { icon: '', label: tx('Priority', lang),         value: tx(complaint.urgency || 'Low', lang) },
+                    { icon: '', label: tx('Department', lang),       value: tx(complaint.category || 'Other', lang) },
                   ].map((s, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: i < 3 ? '1px solid #F0F4FB' : 'none' }}>
                       <div style={{ fontSize: 13, color: '#6B7FA3' }}>{s.icon} {s.label}</div>
@@ -517,15 +517,15 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
 
                 {/* Need Help */}
                 <div style={{ ...styles.card, marginTop: 16 }}>
-                  <div style={styles.cardTitle}>{tx('🔔 Need Help?', lang)}</div>
+                  <div style={styles.cardTitle}>{tx(' Need Help?', lang)}</div>
                   <p style={{ fontSize: 13, color: '#6B7FA3', marginBottom: 16 }}>
                     {tx('If your complaint is overdue or you need assistance:', lang)}
                   </p>
                   <button style={{ ...styles.btnOrange, width: '100%', padding: '11px 0', borderRadius: 9 }} onClick={() => navigate('/citizen/submit')}>
-                    {tx('📝 File New Complaint', lang)}
+                    {tx(' File New Complaint', lang)}
                   </button>
                   <button style={{ ...styles.btnOutline, width: '100%', padding: '11px 0', borderRadius: 9, marginTop: 10, textAlign: 'center' }} onClick={handlePrint}>
-                    {tx('🖨️ Download Report', lang)}
+                    {tx(' Download Report', lang)}
                   </button>
                 </div>
               </div>
@@ -536,7 +536,7 @@ ${lang === 'hi' ? 'लिंक' : 'Link'}: ${window.location.href}
         {/* Empty State */}
         {!complaint && !error && (
           <div style={styles.emptyState}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>🔍</div>
+            <div style={{ fontSize: 64, marginBottom: 16 }}></div>
             <h3 style={{ fontSize: 20, fontWeight: 700, color: '#0F2557', marginBottom: 8 }}>
               {tx('Track Your Complaint', lang)}
             </h3>

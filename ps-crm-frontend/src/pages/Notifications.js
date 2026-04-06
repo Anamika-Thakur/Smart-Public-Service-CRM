@@ -25,7 +25,7 @@ function timeAgo(date, lang) {
   return new Date(date).toLocaleDateString('en-IN');
 }
 
-// ── Convert complaints → notification objects ─────────────────────────────────
+// ── Convert complaints  notification objects ─────────────────────────────────
 function complaintsToNotifications(complaints, lang) {
   const notifs = [];
 
@@ -39,7 +39,7 @@ function complaintsToNotifications(complaints, lang) {
       id: `${id}-submitted`,
       complaintId: id,
       type: 'status',
-      icon: '📋',
+      icon: '',
       title: tx('Complaint Registered', lang),
       message: lang === 'hi'
         ? `आपकी शिकायत "${title}" सफलतापूर्वक जमा की गई। आईडी: ${id.slice(-8).toUpperCase()}`
@@ -56,7 +56,7 @@ function complaintsToNotifications(complaints, lang) {
         id: `${id}-inprogress`,
         complaintId: id,
         type: 'status',
-        icon: '🔄',
+        icon: '',
         title: tx('Complaint In Progress', lang),
         message: lang === 'hi'
           ? `आपकी शिकायत "${title}" पर अधिकारी काम कर रहे हैं।`
@@ -74,7 +74,7 @@ function complaintsToNotifications(complaints, lang) {
         id: `${id}-resolved`,
         complaintId: id,
         type: 'resolved',
-        icon: '✅',
+        icon: '',
         title: tx('Complaint Resolved', lang),
         message: lang === 'hi'
           ? `आपकी शिकायत "${title}" हल की गई।${c.resolution ? ` नोट: ${c.resolution}` : ' कृपया अपना अनुभव रेट करें।'}`
@@ -92,7 +92,7 @@ function complaintsToNotifications(complaints, lang) {
         id: `${id}-escalated`,
         complaintId: id,
         type: 'escalated',
-        icon: '🚨',
+        icon: '',
         title: tx('Complaint Escalated', lang),
         message: lang === 'hi'
           ? `शिकायत "${title}" SLA उल्लंघन के कारण एस्केलेट की गई है।`
@@ -110,7 +110,7 @@ function complaintsToNotifications(complaints, lang) {
         id: `${id}-rejected`,
         complaintId: id,
         type: 'status',
-        icon: '❌',
+        icon: '',
         title: tx('Complaint Rejected', lang),
         message: lang === 'hi'
           ? `आपकी शिकायत "${title}" अस्वीकृत की गई।${c.resolution ? ` कारण: ${c.resolution}` : ''}`
@@ -202,9 +202,9 @@ export default function Notifications() {
         <nav style={styles.nav}>
           <div style={styles.navLabel}>{tx('NAVIGATION', lang)}</div>
           {[
-            { icon: '📊', label: tx('Dashboard', lang),        path: dashPath },
-            { icon: '🔔', label: tx('Notifications', lang),    path: '/notifications', active: true },
-            { icon: '🌐', label: tx('Public Dashboard', lang), path: '/public' },
+            { icon: '', label: tx('Dashboard', lang),        path: dashPath },
+            { icon: '', label: tx('Notifications', lang),    path: '/notifications', active: true },
+            { icon: '', label: tx('Public Dashboard', lang), path: '/public' },
           ].map((l, i) => (
             <div key={i} onClick={() => navigate(l.path)}
               style={{ ...styles.navLink, ...(l.active ? styles.navLinkActive : {}) }}>
@@ -217,7 +217,7 @@ export default function Notifications() {
 
         <div style={styles.sidebarBottom}>
           <div style={{ ...styles.navLink, color: 'rgba(255,255,255,0.4)' }} onClick={logout}>
-            <span style={{ fontSize: 18 }}>🚪</span>
+            <span style={{ fontSize: 18 }}></span>
             <span>{tx('Logout', lang)}</span>
           </div>
         </div>
@@ -228,14 +228,14 @@ export default function Notifications() {
         {/* Topbar */}
         <div style={styles.topbar}>
           <div>
-            <h1 style={styles.pageTitle}>{tx('🔔 Notifications', lang)}</h1>
+            <h1 style={styles.pageTitle}>{tx(' Notifications', lang)}</h1>
             <p style={styles.pageSub}>{subText}</p>
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <LanguageToggle style={{ border: '1.5px solid #0F2557', background: 'rgba(15,37,87,0.07)', color: '#0F2557' }} />
             {unread > 0 && (
               <button style={styles.btnMarkAll} onClick={markAllRead}>
-                {tx('✓ Mark All Read', lang)}
+                {tx(' Mark All Read', lang)}
               </button>
             )}
             <div style={styles.adminChip}>
@@ -250,9 +250,9 @@ export default function Notifications() {
           {[
             { key: 'all',       label: `${tx('All', lang)} (${notifications.length})` },
             { key: 'unread',    label: `${tx('Unread', lang)} (${unread})` },
-            { key: 'resolved',  label: tx('✅ Resolved', lang) },
-            { key: 'status',    label: tx('🔄 Status Updates', lang) },
-            { key: 'escalated', label: tx('🚨 Escalated', lang) },
+            { key: 'resolved',  label: tx(' Resolved', lang) },
+            { key: 'status',    label: tx(' Status Updates', lang) },
+            { key: 'escalated', label: tx(' Escalated', lang) },
           ].map(f => (
             <button key={f.key} onClick={() => setFilter(f.key)}
               style={{ ...styles.filterBtn, ...(filter === f.key ? styles.filterBtnActive : {}) }}>
@@ -265,12 +265,12 @@ export default function Notifications() {
         <div style={styles.listCard}>
           {loading ? (
             <div style={styles.emptyState}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>⏳</div>
+              <div style={{ fontSize: 40, marginBottom: 12 }}></div>
               <div style={{ color: '#6B7FA3' }}>{tx('Loading...', lang)}</div>
             </div>
           ) : filtered.length === 0 ? (
             <div style={styles.emptyState}>
-              <div style={{ fontSize: 56, marginBottom: 16 }}>🔔</div>
+              <div style={{ fontSize: 56, marginBottom: 16 }}></div>
               <div style={{ fontSize: 18, fontWeight: 700, color: '#0F2557', marginBottom: 8 }}>
                 {tx('No notifications', lang)}
               </div>
@@ -293,7 +293,7 @@ export default function Notifications() {
                       <span style={styles.notifTime}>{n.time}</span>
                       {!n.read && <span style={styles.unreadDot} />}
                       <button style={styles.deleteBtn}
-                        onClick={e => { e.stopPropagation(); deleteNotif(n.id); }}>✕</button>
+                        onClick={e => { e.stopPropagation(); deleteNotif(n.id); }}></button>
                     </div>
                   </div>
                   <div style={styles.notifMsg}>{n.message}</div>
@@ -302,19 +302,19 @@ export default function Notifications() {
                   {n.type === 'resolved' && (
                     <button style={styles.actionBtn}
                       onClick={e => { e.stopPropagation(); navigate(`/citizen/feedback/${n.complaintId}`); }}>
-                      {tx('⭐ Give Feedback →', lang)}
+                      {tx(' Give Feedback ', lang)}
                     </button>
                   )}
                   {n.type === 'status' && (
                     <button style={{ ...styles.actionBtn, background: '#DBEAFE', color: '#2563EB' }}
                       onClick={e => { e.stopPropagation(); navigate('/citizen/track'); }}>
-                      {tx('🔍 Track Complaint →', lang)}
+                      {tx(' Track Complaint ', lang)}
                     </button>
                   )}
                   {n.type === 'escalated' && (
                     <button style={{ ...styles.actionBtn, background: '#FEE2E2', color: '#DC2626' }}
                       onClick={e => { e.stopPropagation(); navigate('/citizen/track'); }}>
-                      {tx('🚨 View Complaint →', lang)}
+                      {tx(' View Complaint ', lang)}
                     </button>
                   )}
                 </div>

@@ -20,7 +20,7 @@ export default function Navbar({ title }) {
       <div style={styles.right}>
         {/* ── Language Toggle ── */}
         <LanguageToggle style={styles.langToggle} />
-        <div style={styles.notif}>🔔</div>
+        <div style={styles.notif}></div>
         <div style={styles.userChip}>
           <div style={styles.avatar}>{user?.name?.charAt(0).toUpperCase()}</div>
           <span style={styles.userName}>{user?.name}</span>

@@ -10,7 +10,7 @@ import {
 
 const COLORS = ['#0F2557', '#E8620A', '#1B7A3E', '#1565C0', '#8B5CF6', '#DB2777'];
 
-// ── Heatmap intensity colours (white → deep red) ──────────────────────────
+// ── Heatmap intensity colours (white  deep red) ──────────────────────────
 const heatColor = (value, max) => {
   if (!value || !max) return '#F0F4FB';
   const ratio = value / max;
@@ -152,12 +152,12 @@ ${stats?.dailyTrend.map(d => `${d._id} : ${d.count} complaints`).join('\n')}
         {/* Topbar */}
         <div style={styles.topbar}>
           <div>
-            <h1 style={styles.pageTitle}>📈 Analytics Report</h1>
+            <h1 style={styles.pageTitle}> Analytics Report</h1>
             <p style={styles.pageSub}>Comprehensive insights and performance metrics</p>
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <button style={styles.btnExport} onClick={handleExport} disabled={exporting || !stats}>
-              {exporting ? '⏳ Exporting...' : '⬇️ Export Report'}
+              {exporting ? ' Exporting...' : ' Export Report'}
             </button>
             <div style={styles.adminChip}>
               <div style={styles.chipAvatar}>{user?.name?.charAt(0)}</div>
@@ -167,29 +167,28 @@ ${stats?.dailyTrend.map(d => `${d._id} : ${d.count} complaints`).join('\n')}
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 80, color: '#6B7FA3', fontSize: 16 }}>⏳ Loading analytics...</div>
+          <div style={{ textAlign: 'center', padding: 80, color: '#6B7FA3', fontSize: 16 }}> Loading analytics...</div>
         ) : error ? (
           <div style={{ textAlign: 'center', padding: 80 }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>❌</div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}></div>
             <div style={{ color: '#DC2626', fontSize: 16, fontWeight: 600 }}>{error}</div>
           </div>
         ) : (
           <>
             {/* KPI Cards */}
-            <div style={styles.kpiRow}>
+            <div style={{ ...styles.kpiRow, gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))' }}>
               {[
-                { icon: '📋', label: 'Total Complaints', value: stats.overview.total,      sub: 'All time',        color: '#0F2557', bg: '#EEF2FF' },
-                { icon: '✅', label: 'Resolution Rate',  value: `${resolutionRate}%`,       sub: `${stats.overview.resolved} resolved`, color: '#16A34A', bg: '#DCFCE7' },
-                { icon: '⏳', label: 'Pending',          value: stats.overview.pending,     sub: 'Awaiting action', color: '#D97706', bg: '#FEF3C7' },
-                { icon: '🔄', label: 'In Progress',      value: stats.overview.inProgress,  sub: 'Being resolved',  color: '#2563EB', bg: '#DBEAFE' },
-                { icon: '⚡', label: 'Avg Resolution',   value: stats.avgResponse != null ? `${(stats.avgResponse / 24).toFixed(1)}d` : 'N/A', sub: 'Average days',    color: '#8B5CF6', bg: '#F3E8FF' },
-                { icon: '📈', label: 'Monthly Growth',  value: stats.monthlyGrowth != null ? `${stats.monthlyGrowth >= 0 ? '+' : ''}${stats.monthlyGrowth}%` : 'N/A', sub: '30-day trend', color: '#1B7A3E', bg: '#DCFCE7' },
-                { icon: '⭐', label: 'Citizen Satisfaction', value: stats.citizenSatisfaction != null ? `${stats.citizenSatisfaction}/5` : 'N/A', sub: 'Average Rating', color: '#F59E0B', bg: '#FEF3C7' },
-                { icon: '🚨', label: 'Escalated',
-                  value: `${stats.escalatedRate || 0}%`, sub: 'SLA breached', color: '#DC2626', bg: '#FEE2E2' },
+                { label: 'Total Complaints', value: stats.overview.total,      sub: 'All time',        color: '#0F2557' },
+                { label: 'Resolution Rate',  value: `${resolutionRate}%`,       sub: `${stats.overview.resolved} resolved`, color: '#16A34A' },
+                { label: 'Pending',          value: stats.overview.pending,     sub: 'Awaiting action', color: '#D97706' },
+                { label: 'In Progress',      value: stats.overview.inProgress,  sub: 'Being resolved',  color: '#2563EB' },
+                { label: 'Avg Resolution',   value: stats.avgResponse != null ? `${(stats.avgResponse / 24).toFixed(1)}d` : 'N/A', sub: 'Average days',    color: '#8B5CF6' },
+                { label: 'Monthly Growth',  value: stats.monthlyGrowth != null ? `${stats.monthlyGrowth >= 0 ? '+' : ''}${stats.monthlyGrowth}%` : 'N/A', sub: '30-day trend', color: '#1B7A3E' },
+                { label: 'Citizen Satisfaction', value: stats.citizenSatisfaction != null ? `${stats.citizenSatisfaction}/5` : 'N/A', sub: 'Average Rating', color: '#F59E0B' },
+                { label: 'Escalated',
+                  value: `${stats.escalatedRate || 0}%`, sub: 'SLA breached', color: '#DC2626' },
               ].map((k, i) => (
-                <div key={i} style={styles.kpiCard}>
-                  <div style={{ ...styles.kpiIcon, background: k.bg }}>{k.icon}</div>
+                <div key={i} style={{ ...styles.kpiCard, borderTop: `4px solid ${k.color}` }}>
                   <div style={{ ...styles.kpiValue, color: k.color }}>{k.value}</div>
                   <div style={styles.kpiLabel}>{k.label}</div>
                   <div style={styles.kpiSub}>{k.sub}</div>
@@ -199,7 +198,7 @@ ${stats?.dailyTrend.map(d => `${d._id} : ${d.count} complaints`).join('\n')}
 
             {/* Area Chart */}
             <div style={styles.wideCard}>
-              <div style={styles.cardTitle}>📅 Complaint Volume Trend</div>
+              <div style={styles.cardTitle}> Complaint Volume Trend</div>
               <ResponsiveContainer width="100%" height={240}>
                 <AreaChart data={stats.dailyTrend}>
                   <defs>
@@ -220,7 +219,7 @@ ${stats?.dailyTrend.map(d => `${d._id} : ${d.count} complaints`).join('\n')}
             {/* Charts Row 1 */}
             <div style={styles.chartsRow}>
               <div style={styles.chartCard}>
-                <div style={styles.cardTitle}>📊 Complaints by Category</div>
+                <div style={styles.cardTitle}> Complaints by Category</div>
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={stats.byCategory} barSize={28}>
                     <XAxis dataKey="_id" tick={{ fontSize: 11, fill: '#6B7FA3' }} />
@@ -234,7 +233,7 @@ ${stats?.dailyTrend.map(d => `${d._id} : ${d.count} complaints`).join('\n')}
               </div>
 
               <div style={styles.chartCard}>
-                <div style={styles.cardTitle}>🎯 Status Breakdown</div>
+                <div style={styles.cardTitle}> Status Breakdown</div>
                 <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
                     <Pie
@@ -257,7 +256,7 @@ ${stats?.dailyTrend.map(d => `${d._id} : ${d.count} complaints`).join('\n')}
             {/* Charts Row 2 */}
             <div style={styles.chartsRow}>
               <div style={styles.chartCard}>
-                <div style={styles.cardTitle}>⚡ Urgency Distribution</div>
+                <div style={styles.cardTitle}> Urgency Distribution</div>
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={stats.byUrgency} barSize={40}>
                     <XAxis dataKey="_id" tick={{ fontSize: 12, fill: '#6B7FA3' }} />
@@ -274,7 +273,7 @@ ${stats?.dailyTrend.map(d => `${d._id} : ${d.count} complaints`).join('\n')}
               </div>
 
               <div style={styles.chartCard}>
-                <div style={styles.cardTitle}>📍 Top Wards by Complaints</div>
+                <div style={styles.cardTitle}> Top Wards by Complaints</div>
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={stats.byWard.slice(0, 6)} layout="vertical" barSize={18}>
                     <XAxis type="number"   tick={{ fontSize: 11, fill: '#6B7FA3' }} />
@@ -293,7 +292,7 @@ ${stats?.dailyTrend.map(d => `${d._id} : ${d.count} complaints`).join('\n')}
               {/* Heatmap Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
                 <div>
-                  <div style={styles.cardTitle}>🔥 Ward-wise Complaint Heatmap</div>
+                  <div style={styles.cardTitle}> Ward-wise Complaint Heatmap</div>
                   <div style={{ fontSize: 12, color: '#6B7FA3', marginTop: -10 }}>
                     Identify hotspot wards requiring immediate attention
                   </div>
@@ -302,9 +301,9 @@ ${stats?.dailyTrend.map(d => `${d._id} : ${d.count} complaints`).join('\n')}
                 {/* View toggles */}
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                   {[
-                    { key: 'total',    label: '📊 Total' },
-                    { key: 'category', label: '🏷️ By Category' },
-                    { key: 'urgency',  label: '⚡ By Urgency' },
+                    { key: 'total',    label: ' Total' },
+                    { key: 'category', label: ' By Category' },
+                    { key: 'urgency',  label: ' By Urgency' },
                   ].map(v => (
                     <button key={v.key} style={{
                       padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans',sans-serif",
@@ -345,7 +344,7 @@ ${stats?.dailyTrend.map(d => `${d._id} : ${d.count} complaints`).join('\n')}
               {/* Heatmap Grid */}
               {heatData.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: 40, color: '#9EB3CC', fontSize: 13 }}>
-                  📭 No ward data available yet
+                   No ward data available yet
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
@@ -448,8 +447,8 @@ ${stats?.dailyTrend.map(d => `${d._id} : ${d.count} complaints`).join('\n')}
             {/* Performance Table */}
             <div style={styles.wideCard}>
               <div style={{ ...styles.cardTitle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>🏆 Category Performance Summary</span>
-                <button style={styles.btnExport} onClick={handleExport} disabled={exporting}>{exporting ? '⏳' : '⬇️ Export'}</button>
+                <span> Category Performance Summary</span>
+                <button style={styles.btnExport} onClick={handleExport} disabled={exporting}>{exporting ? '' : ' Export'}</button>
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>

@@ -154,7 +154,7 @@ export default function Login() {
                   background: step > i + 1 ? '#1B7A3E' : step === i + 1 ? '#0F2557' : '#D8E2F0',
                   color: step >= i + 1 ? '#fff' : '#6B7FA3',
                 }}>
-                  {step > i + 1 ? '✓' : i + 1}
+                  {step > i + 1 ? '' : i + 1}
                 </div>
                 <span style={{ fontSize: 12, color: step === i + 1 ? '#0F2557' : '#6B7FA3', fontWeight: step === i + 1 ? 700 : 400 }}>
                   {s}
@@ -203,7 +203,7 @@ export default function Login() {
               {/* Pending approval notice */}
               {pendingMsg && (
                 <div style={styles.pendingBox}>
-                  <div style={styles.pendingIcon}>⏳</div>
+                  <div style={styles.pendingIcon}></div>
                   <div>
                     <div style={styles.pendingTitle}>
                       {lang === 'hi' ? 'अनुमोदन प्रतीक्षारत' : 'Awaiting Admin Approval'}
@@ -216,7 +216,7 @@ export default function Login() {
               {/* Rejected notice */}
               {rejectedMsg && (
                 <div style={styles.rejectedBox}>
-                  <div style={styles.pendingIcon}>❌</div>
+                  <div style={styles.pendingIcon}></div>
                   <div>
                     <div style={{ fontWeight: 700, color: '#991b1b', marginBottom: 4 }}>
                       {lang === 'hi' ? 'पंजीकरण अस्वीकृत' : 'Registration Rejected'}
@@ -229,27 +229,27 @@ export default function Login() {
               {!pendingMsg && !rejectedMsg && (
                 <>
                   <div style={styles.formGroup}>
-                    <label style={styles.label}>{tx('📧 Email Address', lang)}</label>
+                    <label style={styles.label}>{tx(' Email Address', lang)}</label>
                     <input style={styles.input} type="email"
                       placeholder={tx('Enter your email', lang)}
                       value={email} onChange={e => setEmail(e.target.value)} />
                   </div>
                   <div style={styles.formGroup}>
-                    <label style={styles.label}>{tx('🔒 Password', lang)}</label>
+                    <label style={styles.label}>{tx(' Password', lang)}</label>
                     <input style={styles.input} type="password"
                       placeholder={tx('Enter your password', lang)}
                       value={password} onChange={e => setPassword(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleLogin()} />
                   </div>
                   <button style={styles.btn} onClick={handleLogin} disabled={loading}>
-                    {loading ? tx('Logging in...', lang) : tx('✅ Login to Portal', lang)}
+                    {loading ? tx('Logging in...', lang) : tx(' Login to Portal', lang)}
                   </button>
                 </>
               )}
 
               <button onClick={() => { setStep(1); setPendingMsg(''); setRejectedMsg(''); setError(''); }}
                 style={{ width: '100%', padding: 10, border: 'none', background: 'transparent', color: '#6B7FA3', fontSize: 13, cursor: 'pointer', marginTop: 8 }}>
-                {tx('← Change Role', lang)}
+                {tx(' Change Role', lang)}
               </button>
               {role !== 'admin' && (
                 <div style={styles.registerLink}>

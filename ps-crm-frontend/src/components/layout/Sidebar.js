@@ -2,19 +2,19 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const adminLinks = [
-  { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
-  { path: '/admin/complaints', label: 'All Complaints', icon: '📋' },
-  { path: '/public', label: 'Public Dashboard', icon: '🌐' },
+  { path: '/admin/dashboard', label: 'Dashboard', icon: '' },
+  { path: '/admin/complaints', label: 'All Complaints', icon: '' },
+  { path: '/public', label: 'Public Dashboard', icon: '' },
 ];
 
 const officerLinks = [
-  { path: '/officer/dashboard', label: 'My Complaints', icon: '📋' },
+  { path: '/officer/dashboard', label: 'My Complaints', icon: '' },
 ];
 
 const citizenLinks = [
-  { path: '/citizen/dashboard', label: 'My Dashboard', icon: '🏠' },
-  { path: '/citizen/submit', label: 'Submit Complaint', icon: '➕' },
-  { path: '/citizen/track', label: 'Track Complaint', icon: '🔍' },
+  { path: '/citizen/dashboard', label: 'My Dashboard', icon: '' },
+  { path: '/citizen/submit', label: 'Submit Complaint', icon: '' },
+  { path: '/citizen/track', label: 'Track Complaint', icon: '' },
 ];
 
 export default function Sidebar() {
@@ -68,11 +68,11 @@ export default function Sidebar() {
       {/* Bottom */}
       <div style={styles.bottom}>
         <div style={styles.link} onClick={() => navigate('/citizen/submit')}>
-          <span style={styles.linkIcon}>➕</span>
+          <span style={styles.linkIcon}></span>
           <span>Submit Complaint</span>
         </div>
         <div style={styles.logoutBtn} onClick={logout}>
-          <span style={styles.linkIcon}>🚪</span>
+          <span style={styles.linkIcon}></span>
           <span>Logout</span>
         </div>
       </div>
