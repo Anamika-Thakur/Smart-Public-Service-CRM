@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLang, tx } from '../../context/LanguageContext';
+import { hasSensitiveWords, getSensitiveWordErrorMessage } from '../../utils/sensitiveWords';
 import API from '../../api';
 
 const UGC = { High: '#E65100', Medium: '#1565C0', Low: '#1B7A3E' };
@@ -389,6 +390,7 @@ export default function SubmitComplaint() {
   const [success, setSuccess]     = useState(null);
   const [error, setError]         = useState('');
   const [dragOver, setDragOver]   = useState(false);
+  const [sensitiveWordError, setSensitiveWordError] = useState('');
 
   const autoClassify = async (title, description) => {
     const text = `${title} ${description}`.trim();
@@ -448,6 +450,12 @@ export default function SubmitComplaint() {
     }
     if (!form.location.zone.trim()) {
       setError(lang === 'hi' ? 'कृपया जोन स्वचालित रूप से सेट किया गया है।' : 'Zone should be auto-selected based on ward.');
+      return;
+    }
+    // Check for sensitive words in complaint fields
+    if (hasSensitiveWords(form.title) || hasSensitiveWords(form.description)) {
+      setSensitiveWordError(getSensitiveWordErrorMessage(lang));
+      setError(getSensitiveWordErrorMessage(lang));
       return;
     }
     setLoading(true); setError('');
@@ -543,6 +551,7 @@ export default function SubmitComplaint() {
             <div style={styles.card}>
               <div style={styles.cardTitle}>{tx('📋 Complaint Details', lang)}</div>
               {error && <div style={styles.error}>{error}</div>}
+              {sensitiveWordError && <div style={styles.error}>{sensitiveWordError}</div>}
 
               {/* Title — with voice (Mayur) */}
               <div style={styles.formGroup}>
@@ -550,7 +559,13 @@ export default function SubmitComplaint() {
                 <VoiceInput
                   lang={lang}
                   value={form.title}
-                  onChange={(val) => setForm(f => ({ ...f, title: val }))}
+                  onChange={(val) => {
+                    setForm(f => ({ ...f, title: val }));
+                    setSensitiveWordError('');
+                    if (hasSensitiveWords(val)) {
+                      setSensitiveWordError(getSensitiveWordErrorMessage(lang));
+                    }
+                  }}
                   placeholder={tx('Brief title of your complaint', lang)}
                 />
               </div>
@@ -562,7 +577,13 @@ export default function SubmitComplaint() {
                   lang={lang}
                   multiline
                   value={form.description}
-                  onChange={(val) => setForm(f => ({ ...f, description: val }))}
+                  onChange={(val) => {
+                    setForm(f => ({ ...f, description: val }));
+                    setSensitiveWordError('');
+                    if (hasSensitiveWords(val)) {
+                      setSensitiveWordError(getSensitiveWordErrorMessage(lang));
+                    }
+                  }}
                   placeholder={tx('Describe your issue in detail — AI will auto-detect category and urgency...', lang)}
                 />
               </div>

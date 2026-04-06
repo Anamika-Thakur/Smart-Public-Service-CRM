@@ -3,6 +3,7 @@ const { setSLADeadline } = require('../config/slaService');
 const { sendComplaintConfirmation, sendStatusUpdate } = require('../config/emailService');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Groq = require('groq-sdk');
+const { validateComplaintFields } = require('../utils/sensitiveWords');
 
 const parseImages = (rawImages) => {
   if (!rawImages) return [];
@@ -166,6 +167,16 @@ const submitComplaint = async (req, res) => {
       images,
       ...rest
     } = req.body;
+
+    // ── SENSITIVE WORD VALIDATION ─────────────────────────────────────────
+    const validation = validateComplaintFields({ title, description, location });
+    if (!validation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Your complaint contains inappropriate language. Please rephrase.',
+        field: validation.field,
+      });
+    }
 
     const { line1 = '', line2 = '', ward = '', locality = '', zone = '' } = location;
     if (!line1.trim()) {
