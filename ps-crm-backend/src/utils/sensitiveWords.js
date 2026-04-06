@@ -1,12 +1,10 @@
 // Backend sensitive word filter for complaint validation
-// Uses bad-words library + custom Hindi/regional word list for India-specific context
-const Filter = require('bad-words');
-
-// Initialize bad-words filter
-const filter = new Filter();
-
-// Custom Hindi/regional offensive words extending bad-words list
-const CUSTOM_WORDS = [
+const SENSITIVE_WORDS = [
+  // Common English offensive words
+  'damn', 'hell', 'bastard', 'asshole', 'idiot', 'stupid', 'moron',
+  'retard', 'crap', 'piss', 'sucks', 'shit', 'suck', 'fuck', 'fucking',
+  'bitched', 'bitching', 'bitch', 'asshat', 'jackass', 'douchebag',
+  
   // Hindi/Devanagari offensive words (transliteration)
   'gaali', 'gali', 'randii', 'randi', 'bhenchod', 'maderchod', 'chutiya',
   'chod', 'lund', 'rand', 'harami', 'haram', 'jhandu', 'jhantu', 'nalayak',
@@ -31,23 +29,19 @@ const CUSTOM_WORDS = [
   'marpit', 'chhanp', 'maarpeet', 'marpeet',
 ];
 
-// Add custom words to filter
-filter.addWords(...CUSTOM_WORDS);
-
 /**
- * Detects sensitive/offensive words in text using bad-words + custom Hindi word list
+ * Detects sensitive/offensive words in text
  * @param {string} text - Text to check
  * @returns {boolean} - True if sensitive words found
  */
 const hasSensitiveWords = (text) => {
   if (!text || typeof text !== 'string') return false;
   
-  // Check using bad-words library
-  if (filter.isProfane(text)) return true;
-  
-  // Additional custom check for Hindi/regional words
   const lowerText = text.toLowerCase().trim();
-  return CUSTOM_WORDS.some(word => {
+  
+  // Check against word list
+  return SENSITIVE_WORDS.some(word => {
+    // Use word boundaries to avoid partial matches
     const regex = new RegExp(`\\b${word}\\b`, 'gi');
     return regex.test(lowerText);
   });

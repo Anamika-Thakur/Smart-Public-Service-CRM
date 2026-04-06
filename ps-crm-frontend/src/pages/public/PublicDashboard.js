@@ -308,7 +308,7 @@ export default function PublicDashboard() {
                 {/* Summary Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 24 }}>
                   {[
-                    { label: 'Total Wards',      value: 26,                                                                       color: '#0F2557' },
+                    { label: 'Total Wards',      value: 250,                                                                       color: '#0F2557' },
                     { label: 'Active Wards',     value: activeWards.length,                                                       color: '#DC2626' },
                     { label: 'Highest Complaints', value: activeWards[0]?.ward || 'N/A',                                          color: '#D97706' },
                     { label: 'Total Ward Cases',  value: totalWardComplaints,                                                      color: '#16A34A' },
